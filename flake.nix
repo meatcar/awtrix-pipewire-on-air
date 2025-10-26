@@ -28,6 +28,7 @@
               bun
               biome
               amp-cli
+              hyperfine
             ];
           };
         };
