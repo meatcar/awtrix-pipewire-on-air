@@ -29,6 +29,7 @@
               biome
               amp-cli
               hyperfine
+              alsa-utils
             ];
           };
         };
