@@ -1,8 +1,8 @@
 # awtrix-on-air
 
-Monitor your microphone usage and display an "ON AIR" indicator on your Awtrix display.
+Monitor your microphone usage and display an "ON AIR" indicator on your Ulanzi TC001.
 
-This tool watches PipeWire for active microphone streams and automatically shows/hides an "ON AIR" message on your [Awtrix](https://awtrix.blueforcer.de/) smart display - perfect for letting others know when you're in a call or recording.
+This tool watches PipeWire for active microphone streams and automatically shows/hides an "ON AIR" message on your [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) running [Awtrix](https://awtrix.blueforcer.de/) firmware - perfect for letting others know when you're in a call or recording.
 
 ## Features
 
@@ -15,7 +15,7 @@ This tool watches PipeWire for active microphone streams and automatically shows
 
 - [Bun](https://bun.sh) runtime
 - PipeWire audio system
-- Awtrix display on your local network
+- [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) running [Awtrix firmware](https://awtrix.blueforcer.de/) on your local network
 - `jq` for JSON processing
 
 ## Installation
@@ -26,14 +26,20 @@ bun install
 
 ## Usage
 
-Set your Awtrix display host:
+Set your Ulanzi TC001 host (running Awtrix firmware):
 
 ```bash
 export AWTRIX_HOST="192.168.1.100"
-bun run index.ts
+bunx awtrix-on-air
 ```
 
 Or pass it as an argument:
+
+```bash
+bunx awtrix-on-air --awtrix-host 192.168.1.100
+```
+
+If running from source:
 
 ```bash
 bun run index.ts --awtrix-host 192.168.1.100
@@ -42,6 +48,12 @@ bun run index.ts --awtrix-host 192.168.1.100
 The monitor will run until you press Ctrl+C.
 
 ## Development
+
+This project uses [Nix](https://nixos.org/) for development dependencies. Enter the development shell with:
+
+```bash
+nix develop
+```
 
 **Format code:**
 ```bash
@@ -60,7 +72,7 @@ bunx tsc --noEmit
 
 ## Testing
 
-Tests use real PipeWire output fixtures captured from different microphone usage scenarios. To recapture test fixtures:
+Tests use real PipeWire output fixtures captured from different microphone usage scenarios. To recapture test fixtures (requires `arecord` from `alsa-utils`, available in the Nix dev shell):
 
 ```bash
 bun test/fixtures/capture-fixtures.ts
@@ -73,7 +85,7 @@ See [test/fixtures/README.md](test/fixtures/README.md) for more details.
 1. Spawns `pw-dump --monitor | jq` to stream PipeWire state changes
 2. Parses JSON events looking for `Stream/Input/Audio` objects (microphone streams)
 3. Debounces state changes to prevent rapid flickering
-4. Sends HTTP requests to Awtrix display to show/hide "ON AIR" indicator
+4. Sends HTTP requests to the Ulanzi TC001 (via Awtrix API) to show/hide "ON AIR" indicator
 
 ## License
 

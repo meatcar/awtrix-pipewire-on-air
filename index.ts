@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 import { parseArgs } from "util";
 import { AwtrixClient } from "./src/awtrix-client";
 import { PipeWireMonitor } from "./src/pipewire-monitor";
