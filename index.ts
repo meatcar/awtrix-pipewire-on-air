@@ -1,6 +1,7 @@
 import { parseArgs } from 'util';
 import { AwtrixClient } from './src/awtrix-client';
-import { PipeWireWatcher } from './src/pipewire-watcher';
+import { PipeWireMonitor } from './src/pipewire-monitor';
+// import { PipeWireWatcher } from './src/pipewire-watcher';
 // import { NiriWatcher } from './src/niri-watcher';
 
 const usage = `Usage: bun index.ts [options]
@@ -10,11 +11,9 @@ Watches for microphone usage and controls an Awtrix display.
 Options:
   -h, --help              Show this help message
   --awtrix-host <host>    Awtrix display host (IP:port)
-  --poll-interval <ms>    PipeWire polling interval in milliseconds (default: 1000)
 
 Environment Variables:
   AWTRIX_HOST             Awtrix display host (required)
-  POLL_INTERVAL           PipeWire polling interval in ms (default: 1000)
 `;
 
 const { values } = parseArgs({
@@ -25,9 +24,6 @@ const { values } = parseArgs({
       short: 'h',
     },
     'awtrix-host': {
-      type: 'string',
-    },
-    'poll-interval': {
       type: 'string',
     },
   },
@@ -41,7 +37,6 @@ if (values.help) {
 }
 
 const awtrixHost = values['awtrix-host'] ?? process.env.AWTRIX_HOST;
-const pollInterval = parseInt(values['poll-interval'] ?? process.env.POLL_INTERVAL ?? '1000');
 
 if (!awtrixHost) {
   console.error('Error: AWTRIX_HOST environment variable or --awtrix-host argument is required');
@@ -49,7 +44,7 @@ if (!awtrixHost) {
 }
 
 const awtrixClient = new AwtrixClient(awtrixHost);
-const pipeWireWatcher = new PipeWireWatcher(async (isActive, appName) => {
+const pipeWireMonitor = new PipeWireMonitor(async (isActive, appName) => {
   const status = isActive ? 'activated' : 'deactivated';
   const app = appName ? ` (${appName})` : '';
   console.log(`Microphone ${status}${app}`);
@@ -65,20 +60,19 @@ const pipeWireWatcher = new PipeWireWatcher(async (isActive, appName) => {
   } catch (error) {
     console.error('Failed to update Awtrix display:', error);
   }
-}, pollInterval);
+});
 
-console.log('Watching for microphone usage via PipeWire');
+console.log('Watching for microphone usage via PipeWire (real-time monitoring)');
 console.log(`Awtrix display: ${awtrixHost}`);
-console.log(`Poll interval: ${pollInterval}ms`);
-console.log('Starting watcher...\n');
+console.log('Starting monitor...\n');
 
 process.on('SIGINT', () => {
-  console.log('\nStopping watcher...');
-  pipeWireWatcher.stop();
+  console.log('\nStopping monitor...');
+  pipeWireMonitor.stop();
   process.exit(0);
 });
 
-pipeWireWatcher.start().catch((error) => {
+pipeWireMonitor.start().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
