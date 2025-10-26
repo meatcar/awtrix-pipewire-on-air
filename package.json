@@ -1,11 +1,11 @@
 {
-  "name": "awtrix-on-air",
+  "name": "awtrix-pipewire-on-air",
   "version": "1.0.0",
   "description": "Monitor microphone and display an ON AIR indicator on Ulanzi TC001 running Awtrix",
   "module": "index.ts",
   "type": "module",
   "bin": {
-    "awtrix-on-air": "./index.ts"
+    "awtrix-pipewire-on-air": "./index.ts"
   },
   "scripts": {
     "postinstall": "bun2nix -o bun.nix",

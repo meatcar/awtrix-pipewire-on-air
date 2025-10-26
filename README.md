@@ -1,4 +1,4 @@
-# awtrix-on-air
+# awtrix-pipewire-on-air
 
 Monitor your microphone usage and display an "ON AIR" indicator on your Ulanzi TC001.
 
@@ -30,13 +30,13 @@ Set your Ulanzi TC001 host (running Awtrix firmware):
 
 ```bash
 export AWTRIX_HOST="192.168.1.100"
-bunx awtrix-on-air
+bunx awtrix-pipewire-on-air
 ```
 
 Or pass it as an argument:
 
 ```bash
-bunx awtrix-on-air --awtrix-host 192.168.1.100
+bunx awtrix-pipewire-on-air --awtrix-host 192.168.1.100
 ```
 
 If running from source:

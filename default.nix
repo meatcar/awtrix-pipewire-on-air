@@ -1,6 +1,6 @@
 { mkBunDerivation, ... }:
 mkBunDerivation {
-	pname = "awtrix-on-air";
+	pname = "awtrix-pipewire-on-air";
 	version = "1.0.0";
 
 	src = ./.;

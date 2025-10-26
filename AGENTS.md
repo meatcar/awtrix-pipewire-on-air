@@ -1,4 +1,4 @@
-# Agent Guidelines for awtrix-on-air
+# Agent Guidelines for awtrix-pipewire-on-air
 
 ## Commands
 - **Run**: `bun run index.ts` (requires `AWTRIX_HOST` env var or `--awtrix-host` flag)
