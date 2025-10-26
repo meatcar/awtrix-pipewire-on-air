@@ -13,14 +13,21 @@
       flake = { };
       systems = [ "x86_64-linux" ];
       perSystem =
-        { pkgs, ... }:
+        { pkgs, system, ... }:
         {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            config = {
+              allowUnfree = true;
+            };
+          };
           legacyPackages = pkgs;
           devShells.default = pkgs.mkShell {
             name = "awtrix-on-air";
             buildInputs = with pkgs; [
               bun
               biome
+              amp-cli
             ];
           };
         };
