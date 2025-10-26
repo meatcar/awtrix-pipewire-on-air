@@ -1,4 +1,4 @@
-import { spawn } from "bun";
+import type { Subprocess } from "bun";
 
 interface PipeWireObject {
   id: number;
@@ -19,37 +19,37 @@ interface PipeWireEvent {
 }
 
 export class PipeWireMonitor {
-  private process: ReturnType<typeof spawn> | null = null;
+  private process: Subprocess | null = null;
   private onMicChanged: (isActive: boolean, appName?: string) => void;
   private activeMicStreams = new Map<number, string>();
+  private debounceTimer: Timer | null = null;
+  private pendingState: { isActive: boolean; appName?: string } | null = null;
+  private debounceMs = 500;
 
   constructor(onMicChanged: (isActive: boolean, appName?: string) => void) {
     this.onMicChanged = onMicChanged;
   }
 
   async start(): Promise<void> {
-    this.process = spawn(["sh", "-c", "pw-dump --monitor | stdbuf -oL jq -c '.'"], {
+    const proc = Bun.spawn(["sh", "-c", "pw-dump --monitor | jq --unbuffered -c '.'"], {
       stdout: "pipe",
       stderr: "inherit",
     });
 
-    if (!this.process.stdout) {
-      throw new Error("Failed to get stdout from pw-dump process");
-    }
+    this.process = proc;
 
     const decoder = new TextDecoder();
-    const stdout = this.process.stdout as ReadableStream<Uint8Array>;
     let buffer = "";
 
-    for await (const chunk of stdout) {
+    for await (const chunk of proc.stdout) {
       buffer += decoder.decode(chunk, { stream: true });
-      
+
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
 
       for (const line of lines) {
         if (line.trim() === "") continue;
-        
+
         try {
           const data = JSON.parse(line);
           this.handleDump(data);
@@ -62,32 +62,54 @@ export class PipeWireMonitor {
 
   private handleDump(objects: PipeWireObject[]): void {
     const currentMicStreams = new Map<number, string>();
-    
+
     for (const obj of objects) {
       const mediaClass = obj.info?.props?.["media.class"];
       const appName = obj.info?.props?.["application.name"] || obj.info?.props?.["node.name"];
-      
+
       if (mediaClass === "Stream/Input/Audio") {
         currentMicStreams.set(obj.id, appName || "Unknown");
       }
     }
-    
-    const wasActive = this.activeMicStreams.size > 0;
+
     const isActive = currentMicStreams.size > 0;
-    
+    const appName = currentMicStreams.values().next().value;
+
+    this.pendingState = { isActive, appName };
+
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+
+    this.debounceTimer = setTimeout(() => {
+      this.flushPendingState();
+    }, this.debounceMs);
+  }
+
+  private flushPendingState(): void {
+    if (!this.pendingState) return;
+
+    const wasActive = this.activeMicStreams.size > 0;
+    const { isActive, appName } = this.pendingState;
+
     if (!wasActive && isActive) {
-      const firstApp = currentMicStreams.values().next().value;
-      this.onMicChanged(true, firstApp);
+      this.onMicChanged(true, appName);
+      this.activeMicStreams.set(1, appName || "Unknown");
     } else if (wasActive && !isActive) {
       this.onMicChanged(false);
+      this.activeMicStreams.clear();
     }
-    
-    this.activeMicStreams = currentMicStreams;
+
+    this.pendingState = null;
   }
 
 
 
   stop(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
     if (this.process) {
       this.process.kill();
       this.process = null;
