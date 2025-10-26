@@ -35,7 +35,10 @@ describe("PipeWireMonitor", () => {
 		(monitor as any).flushPendingState();
 
 		expect(callbackMock).toHaveBeenCalledTimes(1);
-		expect(callbackMock).toHaveBeenCalledWith(true, "PipeWire ALSA [.aplay-wrapped]");
+		expect(callbackMock).toHaveBeenCalledWith(
+			true,
+			"PipeWire ALSA [.aplay-wrapped]",
+		);
 	});
 
 	test("detects microphone deactivation", () => {
@@ -49,7 +52,11 @@ describe("PipeWireMonitor", () => {
 		(monitor as any).flushPendingState();
 
 		expect(callbackMock).toHaveBeenCalledTimes(2);
-		expect(callbackMock).toHaveBeenNthCalledWith(1, true, "PipeWire ALSA [.aplay-wrapped]");
+		expect(callbackMock).toHaveBeenNthCalledWith(
+			1,
+			true,
+			"PipeWire ALSA [.aplay-wrapped]",
+		);
 		expect(callbackMock).toHaveBeenNthCalledWith(2, false);
 	});
 
@@ -93,7 +100,11 @@ describe("PipeWireMonitor", () => {
 		await new Promise((resolve) => setTimeout(resolve, 600));
 
 		expect(callbackMock).toHaveBeenCalledTimes(2);
-		expect(callbackMock).toHaveBeenNthCalledWith(1, true, "PipeWire ALSA [.aplay-wrapped]");
+		expect(callbackMock).toHaveBeenNthCalledWith(
+			1,
+			true,
+			"PipeWire ALSA [.aplay-wrapped]",
+		);
 		expect(callbackMock).toHaveBeenNthCalledWith(2, false);
 	});
 });

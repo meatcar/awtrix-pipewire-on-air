@@ -1,5 +1,8 @@
 import type { Subprocess } from "bun";
 
+const DEBOUNCE_MS = 500;
+const MEDIA_CLASS_MIC_INPUT = "Stream/Input/Audio";
+
 interface PipeWireObject {
 	id: number;
 	type: string;
@@ -18,18 +21,38 @@ interface PipeWireEvent {
 	id?: number;
 }
 
+/**
+ * Monitors PipeWire for active microphone streams in real-time.
+ *
+ * Uses `pw-dump --monitor | jq` to stream PipeWire state changes and detects
+ * when applications start or stop using the microphone (Stream/Input/Audio).
+ * Includes debouncing to prevent rapid state changes from causing flicker.
+ */
 export class PipeWireMonitor {
 	private process: Subprocess | null = null;
 	private onMicChanged: (isActive: boolean, appName?: string) => void;
 	private activeMicStreams = new Map<number, string>();
 	private debounceTimer: Timer | null = null;
 	private pendingState: { isActive: boolean; appName?: string } | null = null;
-	private debounceMs = 500;
+	private debounceMs = DEBOUNCE_MS;
 
+	/**
+	 * Creates a new PipeWire monitor.
+	 *
+	 * @param onMicChanged Callback invoked when microphone state changes.
+	 *                     Called with (true, appName) when mic activates,
+	 *                     (false) when mic deactivates.
+	 */
 	constructor(onMicChanged: (isActive: boolean, appName?: string) => void) {
 		this.onMicChanged = onMicChanged;
 	}
 
+	/**
+	 * Starts monitoring PipeWire for microphone activity.
+	 *
+	 * Spawns `pw-dump --monitor | jq` and processes the stream until stopped.
+	 * This method runs until the process is killed via `stop()`.
+	 */
 	async start(): Promise<void> {
 		const proc = Bun.spawn(
 			["sh", "-c", "pw-dump --monitor | jq --unbuffered -c '.'"],
@@ -71,7 +94,7 @@ export class PipeWireMonitor {
 			const appName =
 				obj.info?.props?.["application.name"] || obj.info?.props?.["node.name"];
 
-			if (mediaClass === "Stream/Input/Audio") {
+			if (mediaClass === MEDIA_CLASS_MIC_INPUT) {
 				currentMicStreams.set(obj.id, appName || "Unknown");
 			}
 		}
@@ -107,6 +130,11 @@ export class PipeWireMonitor {
 		this.pendingState = null;
 	}
 
+	/**
+	 * Stops the PipeWire monitor and cleans up resources.
+	 *
+	 * Kills the subprocess, clears timers, and resets internal state.
+	 */
 	stop(): void {
 		if (this.debounceTimer) {
 			clearTimeout(this.debounceTimer);

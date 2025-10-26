@@ -1,55 +1,49 @@
 [
-  {
-    "id": 0,
-    "type": "PipeWire:Interface:Core",
-    "version": 4,
-    "permissions": [
-      "r",
-      "x",
-      "m"
-    ],
-    "info": {
-      "cookie": 3482788658,
-      "user-name": "<REDACTED>",
-      "host-name": "<REDACTED>",
-      "version": "1.4.8",
-      "name": "pipewire-0",
-      "change-mask": [
-        "props"
-      ],
-      "props": {
-        "application.language": "en_US.UTF-8",
-        "application.name": "pipewire",
-        "application.process.binary": "pipewire",
-        "application.process.host": "<REDACTED>",
-        "application.process.id": 6200,
-        "application.process.session-id": 2,
-        "application.process.user": "<REDACTED>",
-        "clock.power-of-two-quantum": true,
-        "config.name": "pipewire.conf",
-        "core.daemon": true,
-        "core.name": "pipewire-0",
-        "cpu.max-align": 64,
-        "default.clock.max-quantum": 2048,
-        "default.clock.min-quantum": 32,
-        "default.clock.quantum": 1024,
-        "default.clock.quantum-floor": 4,
-        "default.clock.quantum-limit": 8192,
-        "default.clock.rate": 48000,
-        "default.video.height": 480,
-        "default.video.rate.denom": 1,
-        "default.video.rate.num": 25,
-        "default.video.width": 640,
-        "link.max-buffers": 16,
-        "log.level": 2,
-        "mem.allow-mlock": true,
-        "mem.warn-mlock": false,
-        "object.id": 0,
-        "object.serial": 0,
-        "settings.check-quantum": false,
-        "settings.check-rate": false,
-        "window.x11.display": ":0"
-      }
-    }
-  }
+	{
+		"id": 0,
+		"type": "PipeWire:Interface:Core",
+		"version": 4,
+		"permissions": ["r", "x", "m"],
+		"info": {
+			"cookie": 3482788658,
+			"user-name": "<REDACTED>",
+			"host-name": "<REDACTED>",
+			"version": "1.4.8",
+			"name": "pipewire-0",
+			"change-mask": ["props"],
+			"props": {
+				"application.language": "en_US.UTF-8",
+				"application.name": "pipewire",
+				"application.process.binary": "pipewire",
+				"application.process.host": "<REDACTED>",
+				"application.process.id": 6200,
+				"application.process.session-id": 2,
+				"application.process.user": "<REDACTED>",
+				"clock.power-of-two-quantum": true,
+				"config.name": "pipewire.conf",
+				"core.daemon": true,
+				"core.name": "pipewire-0",
+				"cpu.max-align": 64,
+				"default.clock.max-quantum": 2048,
+				"default.clock.min-quantum": 32,
+				"default.clock.quantum": 1024,
+				"default.clock.quantum-floor": 4,
+				"default.clock.quantum-limit": 8192,
+				"default.clock.rate": 48000,
+				"default.video.height": 480,
+				"default.video.rate.denom": 1,
+				"default.video.rate.num": 25,
+				"default.video.width": 640,
+				"link.max-buffers": 16,
+				"log.level": 2,
+				"mem.allow-mlock": true,
+				"mem.warn-mlock": false,
+				"object.id": 0,
+				"object.serial": 0,
+				"settings.check-quantum": false,
+				"settings.check-rate": false,
+				"window.x11.display": ":0"
+			}
+		}
+	}
 ]

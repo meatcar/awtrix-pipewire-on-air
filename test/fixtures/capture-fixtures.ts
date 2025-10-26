@@ -3,22 +3,36 @@ import { readFileSync, writeFileSync } from "fs";
 import type { Subprocess } from "bun";
 
 const FIXTURE_DIR = import.meta.dir;
+const SENSITIVE_KEYS = [
+	"user-name",
+	"host-name",
+	"application.process.user",
+	"application.process.host",
+];
 
-function sanitizeObject(obj: any): any {
+interface PipeWireProps {
+	"media.class"?: string;
+	[key: string]: unknown;
+}
+
+interface PipeWireObject {
+	id: number;
+	type?: string;
+	info?: {
+		props?: PipeWireProps;
+	};
+}
+
+function sanitizeObject(obj: unknown): unknown {
 	if (typeof obj !== "object" || obj === null) return obj;
 
 	if (Array.isArray(obj)) {
 		return obj.map(sanitizeObject);
 	}
 
-	const sanitized: any = {};
+	const sanitized: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(obj)) {
-		if (
-			key === "user-name" ||
-			key === "host-name" ||
-			key === "application.process.user" ||
-			key === "application.process.host"
-		) {
+		if (SENSITIVE_KEYS.includes(key)) {
 			sanitized[key] = "<REDACTED>";
 		} else {
 			sanitized[key] = sanitizeObject(value);
@@ -27,9 +41,9 @@ function sanitizeObject(obj: any): any {
 	return sanitized;
 }
 
-function filterRelevantData(data: any[]): any[] {
+function filterRelevantData(data: PipeWireObject[]): unknown[] {
 	const filtered = data.filter(
-		(obj: any) =>
+		(obj) =>
 			obj.info?.props?.["media.class"] === "Stream/Input/Audio" ||
 			obj.type === "PipeWire:Interface:Core",
 	);
@@ -56,8 +70,8 @@ async function captureFixture(
 	await $`pw-dump | jq -c '.' > ${FIXTURE_DIR}/${name}.json`;
 
 	const content = readFileSync(`${FIXTURE_DIR}/${name}.json`, "utf-8");
-	let data = JSON.parse(content);
-	data = filterRelevantData(data);
+	const rawData = JSON.parse(content) as PipeWireObject[];
+	const data = filterRelevantData(rawData);
 
 	writeFileSync(
 		`${FIXTURE_DIR}/${name}.json`,
@@ -65,8 +79,8 @@ async function captureFixture(
 		"utf-8",
 	);
 
-	const streams = data.filter(
-		(obj: any) => obj.info?.props?.["media.class"] === "Stream/Input/Audio",
+	const streams = (data as PipeWireObject[]).filter(
+		(obj) => obj.info?.props?.["media.class"] === "Stream/Input/Audio",
 	);
 	const count = streams.length;
 
@@ -144,13 +158,12 @@ async function main() {
 		"mic-active-multiple.json",
 	]) {
 		const content = readFileSync(`${FIXTURE_DIR}/${file}`, "utf-8");
-		const data = JSON.parse(content);
+		const data = JSON.parse(content) as PipeWireObject[];
 		const streams = data
 			.filter(
-				(obj: any) =>
-					obj.info?.props?.["media.class"] === "Stream/Input/Audio",
+				(obj) => obj.info?.props?.["media.class"] === "Stream/Input/Audio",
 			)
-			.map((obj: any) => ({
+			.map((obj) => ({
 				id: obj.id,
 				app: obj.info?.props?.["application.name"],
 				node: obj.info?.props?.["node.name"],
