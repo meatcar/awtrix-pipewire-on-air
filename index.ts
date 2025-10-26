@@ -1,8 +1,6 @@
 import { parseArgs } from 'util';
 import { AwtrixClient } from './src/awtrix-client';
 import { PipeWireMonitor } from './src/pipewire-monitor';
-// import { PipeWireWatcher } from './src/pipewire-watcher';
-// import { NiriWatcher } from './src/niri-watcher';
 
 const usage = `Usage: bun index.ts [options]
 
