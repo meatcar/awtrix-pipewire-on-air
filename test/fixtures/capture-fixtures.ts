@@ -1,4 +1,3 @@
-#!/usr/bin/env bun
 import { $ } from "bun";
 import { readFileSync, writeFileSync } from "fs";
 import type { Subprocess } from "bun";

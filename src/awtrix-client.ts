@@ -1,5 +1,8 @@
 import type { AwtrixMessage } from "./types";
 
+/**
+ * API Documentation: https://blueforcer.github.io/awtrix3/#/api
+ */
 export class AwtrixClient {
 	private baseUrl: string;
 	private appName = "onair";
