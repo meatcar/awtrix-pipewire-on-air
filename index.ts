@@ -46,7 +46,7 @@ const pipeWireMonitor = new PipeWireMonitor(async (isActive, appName) => {
   const status = isActive ? 'activated' : 'deactivated';
   const app = appName ? ` (${appName})` : '';
   console.log(`Microphone ${status}${app}`);
-  
+
   try {
     if (isActive) {
       await awtrixClient.showOnAir();
@@ -70,7 +70,10 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-pipeWireMonitor.start().catch((error) => {
+(async () => {
+  await awtrixClient.ensureCleanState();
+  await pipeWireMonitor.start();
+})().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

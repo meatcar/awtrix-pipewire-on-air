@@ -41,4 +41,28 @@ export class AwtrixClient {
   async hideOnAir(): Promise<void> {
     await this.updateCustomApp(null);
   }
+
+  async getApps(): Promise<Array<{ name: string }>> {
+    try {
+      const url = `${this.baseUrl}/api/apps`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
+      }
+
+      return (await response.json()) as Array<{ name: string }>;
+    } catch (error) {
+      console.error("Failed to get Awtrix apps:", error);
+      throw error;
+    }
+  }
+
+  async ensureCleanState(): Promise<void> {
+    const apps = await this.getApps();
+    if (apps.some((app) => app.name === this.appName)) {
+      console.log(`Clearing existing "${this.appName}" app state`);
+      await this.hideOnAir();
+    }
+  }
 }
