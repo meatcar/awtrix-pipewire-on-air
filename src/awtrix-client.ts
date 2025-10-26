@@ -1,68 +1,72 @@
 import type { AwtrixMessage } from "./types";
 
 export class AwtrixClient {
-  private baseUrl: string;
-  private appName = "onair";
+	private baseUrl: string;
+	private appName = "onair";
 
-  constructor(host: string) {
-    this.baseUrl = `http://${host}`;
-  }
+	constructor(host: string) {
+		this.baseUrl = `http://${host}`;
+	}
 
-  async updateCustomApp(data: AwtrixMessage | null): Promise<void> {
-    try {
-      const url = `${this.baseUrl}/api/custom?name=${this.appName}`;
-      const payload = data === null ? {} : data;
-      
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+	async updateCustomApp(data: AwtrixMessage | null): Promise<void> {
+		try {
+			const url = `${this.baseUrl}/api/custom?name=${this.appName}`;
+			const payload = data === null ? {} : data;
 
-      if (!response.ok) {
-        throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Failed to update Awtrix custom app:", error);
-      throw error;
-    }
-  }
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
 
-  async showOnAir(): Promise<void> {
-    await this.updateCustomApp({
-      text: "ON AIR",
-      color: "#FF0000",
-      icon: "7956",
-    });
-  }
+			if (!response.ok) {
+				throw new Error(
+					`Awtrix API error: ${response.status} ${response.statusText}`,
+				);
+			}
+		} catch (error) {
+			console.error("Failed to update Awtrix custom app:", error);
+			throw error;
+		}
+	}
 
-  async hideOnAir(): Promise<void> {
-    await this.updateCustomApp(null);
-  }
+	async showOnAir(): Promise<void> {
+		await this.updateCustomApp({
+			text: "ON AIR",
+			color: "#FF0000",
+			icon: "liveonair",
+		});
+	}
 
-  async getApps(): Promise<Array<{ name: string }>> {
-    try {
-      const url = `${this.baseUrl}/api/apps`;
-      const response = await fetch(url);
+	async hideOnAir(): Promise<void> {
+		await this.updateCustomApp(null);
+	}
 
-      if (!response.ok) {
-        throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
-      }
+	async getApps(): Promise<Array<{ name: string }>> {
+		try {
+			const url = `${this.baseUrl}/api/apps`;
+			const response = await fetch(url);
 
-      return (await response.json()) as Array<{ name: string }>;
-    } catch (error) {
-      console.error("Failed to get Awtrix apps:", error);
-      throw error;
-    }
-  }
+			if (!response.ok) {
+				throw new Error(
+					`Awtrix API error: ${response.status} ${response.statusText}`,
+				);
+			}
 
-  async ensureCleanState(): Promise<void> {
-    const apps = await this.getApps();
-    if (apps.some((app) => app.name === this.appName)) {
-      console.log(`Clearing existing "${this.appName}" app state`);
-      await this.hideOnAir();
-    }
-  }
+			return (await response.json()) as Array<{ name: string }>;
+		} catch (error) {
+			console.error("Failed to get Awtrix apps:", error);
+			throw error;
+		}
+	}
+
+	async ensureCleanState(): Promise<void> {
+		const apps = await this.getApps();
+		if (apps.some((app) => app.name === this.appName)) {
+			console.log(`Clearing existing "${this.appName}" app state`);
+			await this.hideOnAir();
+		}
+	}
 }
