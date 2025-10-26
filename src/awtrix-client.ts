@@ -10,32 +10,19 @@ export class AwtrixClient {
 
   async updateCustomApp(data: AwtrixMessage | null): Promise<void> {
     try {
-      if (data === null) {
-        const url = `${this.baseUrl}/api/custom/${this.appName}`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        });
+      const url = `${this.baseUrl}/api/custom?name=${this.appName}`;
+      const payload = data === null ? {} : data;
+      
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-        if (!response.ok) {
-          throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
-        }
-      } else {
-        const url = `${this.baseUrl}/api/custom?name=${this.appName}`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
-        }
+      if (!response.ok) {
+        throw new Error(`Awtrix API error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error("Failed to update Awtrix custom app:", error);
