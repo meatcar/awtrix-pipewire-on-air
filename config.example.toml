@@ -1,0 +1,10 @@
+# Awtrix display host (IP:port). Can also be set via AWTRIX_HOST env var or --awtrix-host CLI flag.
+# CLI flag and env var take precedence over this config setting.
+awtrixHost = "192.168.1.4:80"
+
+# List of application names (exact or partial matches) to ignore when detecting microphone usage.
+# These applications will not trigger the "on air" indicator even if they have active mic streams.
+# Examples include audio visualizers, volume controls, or monitoring tools.
+# Can also be set via AWTRIX_IGNORE_APPS environment variable.
+# CLI flag and env var take precedence over this config setting.
+ignoreApps = ["cava", "pavucontrol", "additionalApp"]

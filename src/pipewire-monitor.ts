@@ -4,13 +4,6 @@ import createDebug from "debug";
 const debug = createDebug("awtrix:pipewire");
 const MEDIA_CLASS_MIC_INPUT = "Stream/Input/Audio";
 
-// Applications that should be excluded from triggering "on air" even if they have mic streams
-// These are typically browsers or media players that create monitoring streams
-const EXCLUDED_APPLICATIONS = [
-	"cava", // Audio visualizer
-	"pavucontrol", // PulseAudio Volume Control
-];
-
 interface PipeWireObject {
 	id: number;
 	type: string;
@@ -49,11 +42,14 @@ export class PipeWireMonitor {
 	 * @param onMicChanged Callback invoked when microphone state changes.
 	 *                     Called with (true, appName) when mic activates,
 	 *                     (false) when mic deactivates.
-	 * @param ignoreApps Optional array of application names (exact or partial matches) to ignore.
+	 * @param ignoreApps Array of application names (exact or partial matches) to ignore.
 	 */
-	constructor(onMicChanged: (isActive: boolean, appName?: string) => void, ignoreApps?: string[]) {
+	constructor(
+		onMicChanged: (isActive: boolean, appName?: string) => void,
+		ignoreApps: string[],
+	) {
 		this.onMicChanged = onMicChanged;
-		this.ignoredApps = [...EXCLUDED_APPLICATIONS, ...(ignoreApps || [])];
+		this.ignoredApps = ignoreApps;
 	}
 
   /**
