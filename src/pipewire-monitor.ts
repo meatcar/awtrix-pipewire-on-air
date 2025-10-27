@@ -4,6 +4,13 @@ import createDebug from "debug";
 const debug = createDebug("awtrix:pipewire");
 const MEDIA_CLASS_MIC_INPUT = "Stream/Input/Audio";
 
+// Applications that should be excluded from triggering "on air" even if they have mic streams
+// These are typically browsers or media players that create monitoring streams
+const EXCLUDED_APPLICATIONS = [
+	"cava", // Audio visualizer
+	"pavucontrol", // PulseAudio Volume Control
+];
+
 interface PipeWireObject {
 	id: number;
 	type: string;
@@ -34,6 +41,7 @@ export class PipeWireMonitor {
 	private onMicChanged: (isActive: boolean, appName?: string) => void;
 	private activeMicStreams = new Map<number, string>();
 	private lastEmittedActive = false;
+	private ignoredApps: string[];
 
 	/**
 	 * Creates a new PipeWire monitor.
@@ -41,9 +49,24 @@ export class PipeWireMonitor {
 	 * @param onMicChanged Callback invoked when microphone state changes.
 	 *                     Called with (true, appName) when mic activates,
 	 *                     (false) when mic deactivates.
+	 * @param ignoreApps Optional array of application names (exact or partial matches) to ignore.
 	 */
-	constructor(onMicChanged: (isActive: boolean, appName?: string) => void) {
+	constructor(onMicChanged: (isActive: boolean, appName?: string) => void, ignoreApps?: string[]) {
 		this.onMicChanged = onMicChanged;
+		this.ignoredApps = [...EXCLUDED_APPLICATIONS, ...(ignoreApps || [])];
+	}
+
+  /**
+   * Check if an application should be excluded from triggering "on air"
+   */
+  private isExcludedApplication(appName?: string): boolean {
+    if (!appName) return false;
+    const lowerAppName = appName.toLowerCase();
+
+		// Check exact and partial matches
+		return this.ignoredApps.some((excluded) =>
+			lowerAppName.includes(excluded.toLowerCase()),
+		);
 	}
 
 	/**
@@ -153,18 +176,26 @@ export class PipeWireMonitor {
 						);
 
 						if (isMic) {
-							// Stream is (now) a mic - add or update it
-							const wasPresent = this.activeMicStreams.has(ev.object.id);
-							this.activeMicStreams.set(ev.object.id, appName);
-							debug(
-								"%s mic stream %d, %d active mics",
-								wasPresent ? "Updated" : "Added",
-								ev.object.id,
-								this.activeMicStreams.size,
-							);
-							this.maybeEmitChange(
-								`event: ${ev.type} mic stream ${ev.object.id} (${appName})`,
-							);
+							// Stream is (now) a mic - add or update it (unless excluded)
+							if (!this.isExcludedApplication(appName)) {
+								const wasPresent = this.activeMicStreams.has(ev.object.id);
+								this.activeMicStreams.set(ev.object.id, appName);
+								debug(
+									"%s mic stream %d, %d active mics",
+									wasPresent ? "Updated" : "Added",
+									ev.object.id,
+									this.activeMicStreams.size,
+								);
+								this.maybeEmitChange(
+									`event: ${ev.type} mic stream ${ev.object.id} (${appName})`,
+								);
+							} else {
+								debug(
+									"Excluding mic stream %d from %s (excluded application)",
+									ev.object.id,
+									appName,
+								);
+							}
 						} else {
 							// Stream is NOT a mic - if we were tracking it, remove it (class changed)
 							if (id != null && this.activeMicStreams.has(id)) {
@@ -221,20 +252,26 @@ export class PipeWireMonitor {
 		const appName =
 			obj.info?.props?.["application.name"] ?? obj.info?.props?.["node.name"];
 
-		// If this is a mic stream, add/update it
+		// If this is a mic stream, add/update it (unless excluded)
 		if (mediaClass === MEDIA_CLASS_MIC_INPUT) {
-			const wasPresent = this.activeMicStreams.has(obj.id);
-			this.activeMicStreams.set(obj.id, appName ?? "Unknown");
-			if (!wasPresent) {
-				debug("✓ Added mic stream %d (%s)", obj.id, appName ?? "Unknown");
+			if (!this.isExcludedApplication(appName)) {
+				const wasPresent = this.activeMicStreams.has(obj.id);
+				this.activeMicStreams.set(obj.id, appName ?? "Unknown");
+				if (!wasPresent) {
+					debug("✓ Added mic stream %d (%s)", obj.id, appName ?? "Unknown");
+				}
+			} else {
+				debug(
+					"Excluding mic stream %d from %s (excluded application)",
+					obj.id,
+					appName ?? "Unknown",
+				);
 			}
 			return;
 		}
 
 		// If authoritative and this object is NOT a mic stream (but was previously tracked),
 		// remove it. This handles class changes (mic -> non-mic) or undefined class (shutdown).
-		// BUG FIX: Removed `mediaClass !== undefined` check - undefined class means
-		// the stream is shutting down and should be removed.
 		if (authoritative && this.activeMicStreams.has(obj.id)) {
 			const name = this.activeMicStreams.get(obj.id);
 			this.activeMicStreams.delete(obj.id);

@@ -10,6 +10,7 @@ Watches for microphone usage and controls an Awtrix display.
 Options:
   -h, --help              Show this help message
   --awtrix-host <host>    Awtrix display host (IP:port)
+  -i, --ignore-apps <apps> Comma-delimited list of application names (exact or partial matches) to ignore, overriding built-in exclusions
 
 Environment Variables:
   AWTRIX_HOST             Awtrix display host (required)
@@ -25,6 +26,10 @@ const { values } = parseArgs({
 		"awtrix-host": {
 			type: "string",
 		},
+		"ignore-apps": {
+			type: "string",
+			short: "i",
+		},
 	},
 	strict: true,
 	allowPositionals: false,
@@ -36,6 +41,7 @@ if (values.help) {
 }
 
 const awtrixHost = values["awtrix-host"] ?? process.env.AWTRIX_HOST;
+const ignoreApps = values["ignore-apps"] ? values["ignore-apps"].split(",").map(s => s.trim()) : undefined;
 
 if (!awtrixHost) {
 	console.error(
@@ -61,7 +67,7 @@ const pipeWireMonitor = new PipeWireMonitor(async (isActive, appName) => {
 	} catch (error) {
 		console.error("Failed to update Awtrix display:", error);
 	}
-});
+}, ignoreApps);
 
 console.log(
 	"Watching for microphone usage via PipeWire (real-time monitoring)",

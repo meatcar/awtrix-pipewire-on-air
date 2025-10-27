@@ -403,6 +403,189 @@ describe("PipeWireMonitor", () => {
 		});
 	});
 
+	describe("Application filtering", () => {
+		test("should exclude streams from excluded applications", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged);
+
+      const vivaldiEvent = {
+        type: "added" as const,
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "Vivaldi input",
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(vivaldiEvent);
+
+      // Should NOT trigger callback for excluded application
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
+
+		test("should allow streams from non-excluded applications", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged);
+
+      const discordEvent = {
+        type: "added" as const,
+        object: {
+          id: 456,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "Discord",
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(discordEvent);
+
+      // Should trigger callback for non-excluded application
+      expect(onMicChanged).toHaveBeenCalledWith(true, "Discord");
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(456)).toBe(true);
+    });
+
+		test("should handle case-insensitive matching", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged);
+
+      const chromeEvent = {
+        type: "added" as const,
+        object: {
+          id: 789,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "CHROME", // uppercase
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(chromeEvent);
+
+      // Should NOT trigger callback for excluded application (case-insensitive)
+      expect(onMicChanged).not.toHaveBeenCalled();
+    });
+
+		test("should handle partial name matches", () => {
+		const onMicChanged = mock(() => {});
+		const monitor = new PipeWireMonitor(onMicChanged);
+
+		const firefoxEvent = {
+		type: "added" as const,
+		object: {
+		id: 101,
+		type: "PipeWire:Interface:Node",
+		info: {
+		props: {
+		"media.class": "Stream/Input/Audio",
+		"application.name": "Firefox Browser", // contains "firefox"
+		},
+		},
+		},
+		};
+
+		// @ts-expect-error - accessing private method for testing
+		monitor.handleMessage(firefoxEvent);
+
+		// Should NOT trigger callback for excluded application (partial match)
+		expect(onMicChanged).not.toHaveBeenCalled();
+		});
+
+		test("should exclude applications matching keywords", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged);
+
+      const browserEvent = {
+        type: "added" as const,
+        object: {
+          id: 202,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "Some Web Browser", // contains "web" and "browser" keywords
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(browserEvent);
+
+      // Should NOT trigger callback for excluded application (keyword match)
+      expect(onMicChanged).not.toHaveBeenCalled();
+    });
+
+		test("should exclude cava audio visualizer", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged);
+
+      const cavaEvent = {
+        type: "added" as const,
+        object: {
+          id: 303,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "cava", // exact match in excluded list
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(cavaEvent);
+
+      // Should NOT trigger callback for excluded application
+      expect(onMicChanged).not.toHaveBeenCalled();
+    });
+
+		test("should exclude applications from CLI ignore-apps option", () => {
+			const onMicChanged = mock(() => {});
+			const monitor = new PipeWireMonitor(onMicChanged, ["CustomApp", "Another"]);
+
+      const customEvent = {
+        type: "added" as const,
+        object: {
+          id: 404,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "CustomApp",
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(customEvent);
+
+      // Should NOT trigger callback for CLI-excluded application
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(404)).toBe(false);
+    });
+  });
+
 	describe("Edge cases", () => {
 		test("should ignore non-mic streams", () => {
 			const onMicChanged = mock(() => {});
