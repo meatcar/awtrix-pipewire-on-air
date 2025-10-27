@@ -13,7 +13,7 @@ describe("PipeWireMonitor", () => {
   describe("Array handling (partial/delta batches)", () => {
     test("should add mic stream when it appears in array", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // Simulate array dump with a mic stream
       const arrayDump = [
@@ -37,7 +37,7 @@ describe("PipeWireMonitor", () => {
 
     test("should NOT remove mic stream when absent from partial array", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First array: mic stream present
       const arrayDump1 = [
@@ -83,7 +83,7 @@ describe("PipeWireMonitor", () => {
 
     test("should remove mic stream when it appears with different media.class in array", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First array: mic stream present
       const arrayDump1 = [
@@ -129,7 +129,7 @@ describe("PipeWireMonitor", () => {
 
     test("BUG: should remove mic stream when it appears with undefined media.class in array", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First array: mic stream present
       const arrayDump1 = [
@@ -179,7 +179,7 @@ describe("PipeWireMonitor", () => {
   describe("Event handling", () => {
     test("should add mic stream on 'added' event", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       const addedEvent = {
         type: "added",
@@ -205,7 +205,7 @@ describe("PipeWireMonitor", () => {
 
     test("should remove mic stream on 'removed' event", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First add a stream
       const addedEvent = {
@@ -242,7 +242,7 @@ describe("PipeWireMonitor", () => {
 
     test("should remove mic stream when 'changed' event shows class change", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First add a stream
       const addedEvent = {
@@ -288,7 +288,7 @@ describe("PipeWireMonitor", () => {
 
     test("should keep mic stream when 'changed' event updates properties but class remains mic", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // First add a stream
       const addedEvent = {
@@ -339,7 +339,7 @@ describe("PipeWireMonitor", () => {
   describe("Multiple streams", () => {
     test("should track multiple mic streams simultaneously", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // Add first stream
       // @ts-expect-error - accessing private method for testing
@@ -406,7 +406,7 @@ describe("PipeWireMonitor", () => {
   describe("Application filtering", () => {
     test("should exclude streams from excluded applications", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, ["vivaldi"]);
+      const monitor = new PipeWireMonitor(onMicChanged, ["vivaldi"], false);
 
       const vivaldiEvent = {
         type: "added" as const,
@@ -433,7 +433,7 @@ describe("PipeWireMonitor", () => {
 
     test("should allow streams from non-excluded applications", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       const discordEvent = {
         type: "added" as const,
@@ -460,7 +460,7 @@ describe("PipeWireMonitor", () => {
 
     test("should handle case-insensitive matching", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, ["chrome"]);
+      const monitor = new PipeWireMonitor(onMicChanged, ["chrome"], false);
 
       const chromeEvent = {
         type: "added" as const,
@@ -485,7 +485,7 @@ describe("PipeWireMonitor", () => {
 
     test("should handle partial name matches", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, ["firefox"]);
+      const monitor = new PipeWireMonitor(onMicChanged, ["firefox"], false);
 
       const firefoxEvent = {
         type: "added" as const,
@@ -510,7 +510,7 @@ describe("PipeWireMonitor", () => {
 
     test("should exclude applications matching keywords", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, ["browser"]);
+      const monitor = new PipeWireMonitor(onMicChanged, ["browser"], false);
 
       const browserEvent = {
         type: "added" as const,
@@ -535,7 +535,7 @@ describe("PipeWireMonitor", () => {
 
     test("should exclude cava audio visualizer", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, ["cava"]);
+      const monitor = new PipeWireMonitor(onMicChanged, ["cava"], false);
 
       const cavaEvent = {
         type: "added" as const,
@@ -560,10 +560,11 @@ describe("PipeWireMonitor", () => {
 
     test("should exclude applications from CLI ignore-apps option", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, [
-        "CustomApp",
-        "Another",
-      ]);
+      const monitor = new PipeWireMonitor(
+        onMicChanged,
+        ["CustomApp", "Another"],
+        false,
+      );
 
       const customEvent = {
         type: "added" as const,
@@ -592,7 +593,7 @@ describe("PipeWireMonitor", () => {
   describe("Edge cases", () => {
     test("should ignore non-mic streams", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // @ts-expect-error - accessing private method for testing
       monitor.handleMessage({
@@ -616,7 +617,7 @@ describe("PipeWireMonitor", () => {
 
     test("should handle malformed messages gracefully", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // Completely malformed
       // @ts-expect-error - accessing private method for testing
@@ -631,7 +632,7 @@ describe("PipeWireMonitor", () => {
 
     test("should use fallback app name when application.name is missing", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // @ts-expect-error - accessing private method for testing
       monitor.handleMessage({
@@ -654,7 +655,7 @@ describe("PipeWireMonitor", () => {
 
     test("should use 'Unknown' when both application.name and node.name are missing", () => {
       const onMicChanged = mock(() => {});
-      const monitor = new PipeWireMonitor(onMicChanged, []);
+      const monitor = new PipeWireMonitor(onMicChanged, [], false);
 
       // @ts-expect-error - accessing private method for testing
       monitor.handleMessage({

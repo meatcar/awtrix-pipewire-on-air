@@ -46,7 +46,7 @@ export class AwtrixClient {
 
     if (!response.ok) {
       throw new Error(
-        `Awtrix API error: ${response.status} ${response.statusText}`,
+        `\x1b[31mAwtrix API error: ${response.status} ${response.statusText}\x1b[0m`,
       );
     }
   }
@@ -81,7 +81,7 @@ export class AwtrixClient {
 
     if (!response.ok) {
       throw new Error(
-        `Awtrix API error: ${response.status} ${response.statusText}`,
+        `\\x1b[31mAwtrix API error: ${response.status} ${response.statusText}\\x1b[0m`,
       );
     }
 
@@ -97,7 +97,9 @@ export class AwtrixClient {
   async ensureCleanState(): Promise<void> {
     const apps = await this.getApps();
     if (apps.some((app) => app.name === this.appName)) {
-      console.log(`Clearing existing "${this.appName}" app state`);
+      console.log(
+        `\x1b[33m[Awtrix] Clearing existing "${this.appName}" app state\x1b[0m`,
+      );
       await this.hideOnAir();
     }
   }

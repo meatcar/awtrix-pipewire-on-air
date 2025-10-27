@@ -9,18 +9,20 @@ const usage = `Usage: bun index.ts [options]
 Watches for microphone usage and controls an Awtrix display.
 
 Options:
-   -h, --help               Show this help message
-   --awtrix-host <host>     Awtrix display host (IP:port)
-   -i, --ignore-apps <apps> Comma-delimited list of application names (exact or partial matches) to ignore, overriding env var, config file, and defaults
+    -h, --help               Show this help message
+    --awtrix-host <host>     Awtrix display host (IP:port)
+    -i, --ignore-apps <apps> Comma-delimited list of application names (exact or partial matches) to ignore, overriding env var, config file, and defaults
+    --log-ignored            Log when applications are ignored due to being in the ignore list
 
 Environment Variables:
-   AWTRIX_HOST              Awtrix display host (required)
-   AWTRIX_IGNORE_APPS       Comma-delimited list of application names to ignore
+    AWTRIX_HOST              Awtrix display host (required)
+    AWTRIX_IGNORE_APPS       Comma-delimited list of application names to ignore
+    AWTRIX_LOG_IGNORED       Log ignored applications (true/false)
 
 Configuration:
-   Config file: ~/.config/awtrix-pipewire-on-air/config.toml (or $XDG_CONFIG_HOME)
-   See config.example.toml for available settings
- `;
+  Config file: ~/.config/awtrix-pipewire-on-air/config.toml (or $XDG_CONFIG_HOME)
+    See config.example.toml for available settings
+  `;
 
 (async () => {
   const config = await loadConfig();
@@ -39,6 +41,9 @@ Configuration:
         type: "string",
         short: "i",
       },
+      "log-ignored": {
+        type: "boolean",
+      },
     },
     strict: true,
     allowPositionals: false,
@@ -56,6 +61,12 @@ Configuration:
     : process.env.AWTRIX_IGNORE_APPS
       ? process.env.AWTRIX_IGNORE_APPS.split(",").map((s) => s.trim())
       : config.ignoreApps || ["cava", "pavucontrol"];
+  const logIgnoredApps =
+    values["log-ignored"] ??
+    (process.env.AWTRIX_LOG_IGNORED
+      ? process.env.AWTRIX_LOG_IGNORED === "true"
+      : config.logIgnoredApps) ??
+    false;
 
   if (!awtrixHost) {
     console.error(
@@ -65,32 +76,42 @@ Configuration:
   }
 
   const awtrixClient = new AwtrixClient(awtrixHost);
-  const pipeWireMonitor = new PipeWireMonitor(async (isActive, appName) => {
-    const status = isActive ? "activated" : "deactivated";
-    const app = appName ? ` (${appName})` : "";
-    console.log(`Microphone ${status}${app}`);
+  const pipeWireMonitor = new PipeWireMonitor(
+    async (isActive, appName) => {
+      const status = isActive ? "activated" : "deactivated";
+      const app = appName ? ` (${appName})` : "";
+      console.log(`\x1b[36mMicrophone ${status}${app}\x1b[0m`);
 
-    try {
-      if (isActive) {
-        await awtrixClient.showOnAir();
-        console.log("✓ ON AIR indicator activated");
-      } else {
-        await awtrixClient.hideOnAir();
-        console.log("✓ ON AIR indicator deactivated");
+      try {
+        if (isActive) {
+          await awtrixClient.showOnAir();
+          console.log("\x1b[32m✓ ON AIR indicator activated\x1b[0m");
+        } else {
+          await awtrixClient.hideOnAir();
+          console.log("\x1b[31m✓ ON AIR indicator deactivated\x1b[0m");
+        }
+      } catch (error) {
+        console.error("\x1b[31mFailed to update Awtrix display:\x1b[0m", error);
       }
-    } catch (error) {
-      console.error("Failed to update Awtrix display:", error);
-    }
-  }, ignoreApps);
+    },
+    ignoreApps,
+    logIgnoredApps,
+  );
+
+  console.log("\x1b[35mConfiguration:\x1b[0m");
+  console.log(`  Awtrix host: ${awtrixHost}`);
+  console.log(`  Ignored apps: ${ignoreApps.join(", ") || "none"}`);
+  console.log(`  Log ignored apps: ${logIgnoredApps ? "yes" : "no"}`);
+  console.log("");
 
   console.log(
     "Watching for microphone usage via PipeWire (real-time monitoring)",
   );
   console.log(`Awtrix display: ${awtrixHost}`);
-  console.log("Starting monitor...\\n");
+  console.log("Starting monitor...");
 
   process.on("SIGINT", () => {
-    console.log("\\nStopping monitor...");
+    console.log("\[33m\nStopping monitor[0m...");
     pipeWireMonitor.stop();
     process.exit(0);
   });
@@ -98,6 +119,6 @@ Configuration:
   await awtrixClient.ensureCleanState();
   await pipeWireMonitor.start();
 })().catch((error) => {
-  console.error("Fatal error:", error);
+  console.error("\x1b[31mFatal error:\x1b[0m", error);
   process.exit(1);
 });

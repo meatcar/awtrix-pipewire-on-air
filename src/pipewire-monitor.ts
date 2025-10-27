@@ -35,6 +35,7 @@ export class PipeWireMonitor {
   private activeMicStreams = new Map<number, string>();
   private lastEmittedActive = false;
   private ignoredApps: string[];
+  private logIgnoredApps: boolean;
 
   /**
    * Creates a new PipeWire monitor.
@@ -43,13 +44,16 @@ export class PipeWireMonitor {
    *                     Called with (true, appName) when mic activates,
    *                     (false) when mic deactivates.
    * @param ignoreApps Array of application names (exact or partial matches) to ignore.
+   * @param logIgnoredApps Whether to log when applications are ignored.
    */
   constructor(
     onMicChanged: (isActive: boolean, appName?: string) => void,
     ignoreApps: string[],
+    logIgnoredApps: boolean,
   ) {
     this.onMicChanged = onMicChanged;
     this.ignoredApps = ignoreApps;
+    this.logIgnoredApps = logIgnoredApps;
   }
 
   /**
@@ -191,6 +195,11 @@ export class PipeWireMonitor {
                   ev.object.id,
                   appName,
                 );
+                if (this.logIgnoredApps) {
+                  console.log(
+                    `\x1b[33m[PW] Ignoring mic usage by ${appName}\x1b[0m`,
+                  );
+                }
               }
             } else {
               // Stream is NOT a mic - if we were tracking it, remove it (class changed)
@@ -262,6 +271,11 @@ export class PipeWireMonitor {
           obj.id,
           appName ?? "Unknown",
         );
+        if (this.logIgnoredApps) {
+          console.log(
+            `\x1b[33m[PW] Ignoring mic usage by ${appName ?? "Unknown"}\x1b[0m`,
+          );
+        }
       }
       return;
     }

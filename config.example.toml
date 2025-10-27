@@ -8,3 +8,9 @@ awtrixHost = "192.168.1.4:80"
 # Can also be set via AWTRIX_IGNORE_APPS environment variable.
 # CLI flag and env var take precedence over this config setting.
 ignoreApps = ["cava", "pavucontrol", "additionalApp"]
+
+# Whether to log ignored applications when they start using the microphone.
+# Useful for debugging which apps are being excluded.
+# Can also be set via AWTRIX_LOG_IGNORED environment variable.
+# CLI flag takes precedence over this config setting.
+logIgnoredApps = false

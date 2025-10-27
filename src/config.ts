@@ -4,6 +4,7 @@ import { join } from "node:path";
 export interface Config {
   awtrixHost?: string;
   ignoreApps?: string[];
+  logIgnoredApps?: boolean;
 }
 
 const CONFIG_DIR = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
@@ -11,6 +12,7 @@ const CONFIG_PATH = join(CONFIG_DIR, "awtrix-pipewire-on-air", "config.toml");
 
 const DEFAULT_CONFIG: Config = {
   ignoreApps: ["cava", "pavucontrol"],
+  logIgnoredApps: false,
 };
 
 export async function loadConfig(): Promise<Config> {
