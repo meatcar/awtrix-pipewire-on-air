@@ -10,403 +10,403 @@ import { PipeWireMonitor } from "../src/pipewire-monitor";
  */
 
 describe("PipeWireMonitor", () => {
-	describe("Array handling (partial/delta batches)", () => {
-		test("should add mic stream when it appears in array", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+  describe("Array handling (partial/delta batches)", () => {
+    test("should add mic stream when it appears in array", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// Simulate array dump with a mic stream
-			const arrayDump = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // Simulate array dump with a mic stream
+      const arrayDump = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump);
 
-			expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
-		});
+      expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
+    });
 
-		test("should NOT remove mic stream when absent from partial array", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should NOT remove mic stream when absent from partial array", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First array: mic stream present
-			const arrayDump1 = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // First array: mic stream present
+      const arrayDump1 = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump1);
-			expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump1);
+      expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
+      onMicChanged.mockClear();
 
-			// Second array: mic stream ABSENT (partial batch)
-			// This simulates pw-dump sending a partial batch that doesn't include our stream
-			const arrayDump2 = [
-				{
-					id: 999,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Output/Audio",
-						},
-					},
-				},
-			];
+      // Second array: mic stream ABSENT (partial batch)
+      // This simulates pw-dump sending a partial batch that doesn't include our stream
+      const arrayDump2 = [
+        {
+          id: 999,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Output/Audio",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump2);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump2);
 
-			// Mic should STILL be active (absence doesn't mean removal)
-			expect(onMicChanged).not.toHaveBeenCalled();
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(true);
-		});
+      // Mic should STILL be active (absence doesn't mean removal)
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(true);
+    });
 
-		test("should remove mic stream when it appears with different media.class in array", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should remove mic stream when it appears with different media.class in array", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First array: mic stream present
-			const arrayDump1 = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // First array: mic stream present
+      const arrayDump1 = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump1);
-			expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump1);
+      expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
+      onMicChanged.mockClear();
 
-			// Second array: SAME stream ID but different class (class changed)
-			const arrayDump2 = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Output/Audio", // Changed from Input to Output
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // Second array: SAME stream ID but different class (class changed)
+      const arrayDump2 = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Output/Audio", // Changed from Input to Output
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump2);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump2);
 
-			// Stream should be removed (class changed)
-			expect(onMicChanged).toHaveBeenCalledWith(false);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(false);
-		});
+      // Stream should be removed (class changed)
+      expect(onMicChanged).toHaveBeenCalledWith(false);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
 
-		test("BUG: should remove mic stream when it appears with undefined media.class in array", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("BUG: should remove mic stream when it appears with undefined media.class in array", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First array: mic stream present
-			const arrayDump1 = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // First array: mic stream present
+      const arrayDump1 = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump1);
-			expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump1);
+      expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
+      onMicChanged.mockClear();
 
-			// Second array: SAME stream ID but media.class is now undefined
-			// This could happen if the stream is shutting down or properties are being cleared
-			const arrayDump2 = [
-				{
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							// media.class is undefined/missing
-							"application.name": "TestApp",
-						},
-					},
-				},
-			];
+      // Second array: SAME stream ID but media.class is now undefined
+      // This could happen if the stream is shutting down or properties are being cleared
+      const arrayDump2 = [
+        {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              // media.class is undefined/missing
+              "application.name": "TestApp",
+            },
+          },
+        },
+      ];
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(arrayDump2);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(arrayDump2);
 
-			// Stream should be removed (no longer a mic stream)
-			// Currently FAILS due to bug on line 196 of pipewire-monitor.ts
-			expect(onMicChanged).toHaveBeenCalledWith(false);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(false);
-		});
-	});
+      // Stream should be removed (no longer a mic stream)
+      // Currently FAILS due to bug on line 196 of pipewire-monitor.ts
+      expect(onMicChanged).toHaveBeenCalledWith(false);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
+  });
 
-	describe("Event handling", () => {
-		test("should add mic stream on 'added' event", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+  describe("Event handling", () => {
+    test("should add mic stream on 'added' event", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			const addedEvent = {
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			};
+      const addedEvent = {
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(addedEvent);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(addedEvent);
 
-			expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(true);
-		});
+      expect(onMicChanged).toHaveBeenCalledWith(true, "TestApp");
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(true);
+    });
 
-		test("should remove mic stream on 'removed' event", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should remove mic stream on 'removed' event", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First add a stream
-			const addedEvent = {
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			};
+      // First add a stream
+      const addedEvent = {
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(addedEvent);
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(addedEvent);
+      onMicChanged.mockClear();
 
-			// Now remove it
-			const removedEvent = {
-				type: "removed",
-				id: 123,
-			};
+      // Now remove it
+      const removedEvent = {
+        type: "removed",
+        id: 123,
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(removedEvent);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(removedEvent);
 
-			expect(onMicChanged).toHaveBeenCalledWith(false);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(false);
-		});
+      expect(onMicChanged).toHaveBeenCalledWith(false);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
 
-		test("should remove mic stream when 'changed' event shows class change", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should remove mic stream when 'changed' event shows class change", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First add a stream
-			const addedEvent = {
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			};
+      // First add a stream
+      const addedEvent = {
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(addedEvent);
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(addedEvent);
+      onMicChanged.mockClear();
 
-			// Now change it to non-mic class
-			const changedEvent = {
-				type: "changed",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Output/Audio", // Changed
-							"application.name": "TestApp",
-						},
-					},
-				},
-			};
+      // Now change it to non-mic class
+      const changedEvent = {
+        type: "changed",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Output/Audio", // Changed
+              "application.name": "TestApp",
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(changedEvent);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(changedEvent);
 
-			expect(onMicChanged).toHaveBeenCalledWith(false);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(false);
-		});
+      expect(onMicChanged).toHaveBeenCalledWith(false);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
 
-		test("should keep mic stream when 'changed' event updates properties but class remains mic", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should keep mic stream when 'changed' event updates properties but class remains mic", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// First add a stream
-			const addedEvent = {
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "TestApp",
-						},
-					},
-				},
-			};
+      // First add a stream
+      const addedEvent = {
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "TestApp",
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(addedEvent);
-			onMicChanged.mockClear();
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(addedEvent);
+      onMicChanged.mockClear();
 
-			// Change app name but keep mic class
-			const changedEvent = {
-				type: "changed",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio", // Still a mic
-							"application.name": "UpdatedApp", // Changed name
-						},
-					},
-				},
-			};
+      // Change app name but keep mic class
+      const changedEvent = {
+        type: "changed",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio", // Still a mic
+              "application.name": "UpdatedApp", // Changed name
+            },
+          },
+        },
+      };
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage(changedEvent);
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage(changedEvent);
 
-			// Should NOT trigger callback (state didn't change from active to inactive)
-			expect(onMicChanged).not.toHaveBeenCalled();
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(true);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.get(123)).toBe("UpdatedApp");
-		});
-	});
+      // Should NOT trigger callback (state didn't change from active to inactive)
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(true);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.get(123)).toBe("UpdatedApp");
+    });
+  });
 
-	describe("Multiple streams", () => {
-		test("should track multiple mic streams simultaneously", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+  describe("Multiple streams", () => {
+    test("should track multiple mic streams simultaneously", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// Add first stream
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "App1",
-						},
-					},
-				},
-			});
-			expect(onMicChanged).toHaveBeenCalledWith(true, "App1");
-			onMicChanged.mockClear();
+      // Add first stream
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "App1",
+            },
+          },
+        },
+      });
+      expect(onMicChanged).toHaveBeenCalledWith(true, "App1");
+      onMicChanged.mockClear();
 
-			// Add second stream (mic still active, just different app)
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "added",
-				object: {
-					id: 456,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"application.name": "App2",
-						},
-					},
-				},
-			});
-			// Should NOT call callback (already active)
-			expect(onMicChanged).not.toHaveBeenCalled();
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.size).toBe(2);
+      // Add second stream (mic still active, just different app)
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "added",
+        object: {
+          id: 456,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "application.name": "App2",
+            },
+          },
+        },
+      });
+      // Should NOT call callback (already active)
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.size).toBe(2);
 
-			// Remove first stream
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "removed",
-				id: 123,
-			});
-			// Should NOT call callback (still have second stream)
-			expect(onMicChanged).not.toHaveBeenCalled();
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.size).toBe(1);
+      // Remove first stream
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "removed",
+        id: 123,
+      });
+      // Should NOT call callback (still have second stream)
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.size).toBe(1);
 
-			// Remove second stream
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "removed",
-				id: 456,
-			});
-			// NOW should call callback (no more active streams)
-			expect(onMicChanged).toHaveBeenCalledWith(false);
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.size).toBe(0);
-		});
-	});
+      // Remove second stream
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "removed",
+        id: 456,
+      });
+      // NOW should call callback (no more active streams)
+      expect(onMicChanged).toHaveBeenCalledWith(false);
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.size).toBe(0);
+    });
+  });
 
-	describe("Application filtering", () => {
-		test("should exclude streams from excluded applications", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, ["vivaldi"]);
+  describe("Application filtering", () => {
+    test("should exclude streams from excluded applications", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, ["vivaldi"]);
 
       const vivaldiEvent = {
         type: "added" as const,
@@ -431,9 +431,9 @@ describe("PipeWireMonitor", () => {
       expect(monitor.activeMicStreams.has(123)).toBe(false);
     });
 
-		test("should allow streams from non-excluded applications", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should allow streams from non-excluded applications", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
       const discordEvent = {
         type: "added" as const,
@@ -458,9 +458,9 @@ describe("PipeWireMonitor", () => {
       expect(monitor.activeMicStreams.has(456)).toBe(true);
     });
 
-		test("should handle case-insensitive matching", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, ["chrome"]);
+    test("should handle case-insensitive matching", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, ["chrome"]);
 
       const chromeEvent = {
         type: "added" as const,
@@ -483,9 +483,9 @@ describe("PipeWireMonitor", () => {
       expect(onMicChanged).not.toHaveBeenCalled();
     });
 
-		test("should handle partial name matches", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, ["firefox"]);
+    test("should handle partial name matches", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, ["firefox"]);
 
       const firefoxEvent = {
         type: "added" as const,
@@ -504,13 +504,13 @@ describe("PipeWireMonitor", () => {
       // @ts-expect-error - accessing private method for testing
       monitor.handleMessage(firefoxEvent);
 
-			// Should NOT trigger callback for excluded application (partial match)
-			expect(onMicChanged).not.toHaveBeenCalled();
-		});
+      // Should NOT trigger callback for excluded application (partial match)
+      expect(onMicChanged).not.toHaveBeenCalled();
+    });
 
-		test("should exclude applications matching keywords", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, ["browser"]);
+    test("should exclude applications matching keywords", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, ["browser"]);
 
       const browserEvent = {
         type: "added" as const,
@@ -533,9 +533,9 @@ describe("PipeWireMonitor", () => {
       expect(onMicChanged).not.toHaveBeenCalled();
     });
 
-		test("should exclude cava audio visualizer", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, ["cava"]);
+    test("should exclude cava audio visualizer", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, ["cava"]);
 
       const cavaEvent = {
         type: "added" as const,
@@ -558,12 +558,12 @@ describe("PipeWireMonitor", () => {
       expect(onMicChanged).not.toHaveBeenCalled();
     });
 
-		test("should exclude applications from CLI ignore-apps option", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, [
-				"CustomApp",
-				"Another",
-			]);
+    test("should exclude applications from CLI ignore-apps option", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, [
+        "CustomApp",
+        "Another",
+      ]);
 
       const customEvent = {
         type: "added" as const,
@@ -589,89 +589,89 @@ describe("PipeWireMonitor", () => {
     });
   });
 
-	describe("Edge cases", () => {
-		test("should ignore non-mic streams", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+  describe("Edge cases", () => {
+    test("should ignore non-mic streams", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Output/Audio", // Output, not Input
-							"application.name": "Speaker",
-						},
-					},
-				},
-			});
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Output/Audio", // Output, not Input
+              "application.name": "Speaker",
+            },
+          },
+        },
+      });
 
-			expect(onMicChanged).not.toHaveBeenCalled();
-			// @ts-expect-error - accessing private field for testing
-			expect(monitor.activeMicStreams.has(123)).toBe(false);
-		});
+      expect(onMicChanged).not.toHaveBeenCalled();
+      // @ts-expect-error - accessing private field for testing
+      expect(monitor.activeMicStreams.has(123)).toBe(false);
+    });
 
-		test("should handle malformed messages gracefully", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should handle malformed messages gracefully", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// Completely malformed
-			// @ts-expect-error - accessing private method for testing
-			expect(() => monitor.handleMessage(null)).not.toThrow();
-			// @ts-expect-error - accessing private method for testing
-			expect(() => monitor.handleMessage(undefined)).not.toThrow();
-			// @ts-expect-error - accessing private method for testing
-			expect(() => monitor.handleMessage("string")).not.toThrow();
+      // Completely malformed
+      // @ts-expect-error - accessing private method for testing
+      expect(() => monitor.handleMessage(null)).not.toThrow();
+      // @ts-expect-error - accessing private method for testing
+      expect(() => monitor.handleMessage(undefined)).not.toThrow();
+      // @ts-expect-error - accessing private method for testing
+      expect(() => monitor.handleMessage("string")).not.toThrow();
 
-			expect(onMicChanged).not.toHaveBeenCalled();
-		});
+      expect(onMicChanged).not.toHaveBeenCalled();
+    });
 
-		test("should use fallback app name when application.name is missing", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should use fallback app name when application.name is missing", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							"node.name": "FallbackName",
-							// application.name is missing
-						},
-					},
-				},
-			});
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              "node.name": "FallbackName",
+              // application.name is missing
+            },
+          },
+        },
+      });
 
-			expect(onMicChanged).toHaveBeenCalledWith(true, "FallbackName");
-		});
+      expect(onMicChanged).toHaveBeenCalledWith(true, "FallbackName");
+    });
 
-		test("should use 'Unknown' when both application.name and node.name are missing", () => {
-			const onMicChanged = mock(() => {});
-			const monitor = new PipeWireMonitor(onMicChanged, []);
+    test("should use 'Unknown' when both application.name and node.name are missing", () => {
+      const onMicChanged = mock(() => {});
+      const monitor = new PipeWireMonitor(onMicChanged, []);
 
-			// @ts-expect-error - accessing private method for testing
-			monitor.handleMessage({
-				type: "added",
-				object: {
-					id: 123,
-					type: "PipeWire:Interface:Node",
-					info: {
-						props: {
-							"media.class": "Stream/Input/Audio",
-							// Both names missing
-						},
-					},
-				},
-			});
+      // @ts-expect-error - accessing private method for testing
+      monitor.handleMessage({
+        type: "added",
+        object: {
+          id: 123,
+          type: "PipeWire:Interface:Node",
+          info: {
+            props: {
+              "media.class": "Stream/Input/Audio",
+              // Both names missing
+            },
+          },
+        },
+      });
 
-			expect(onMicChanged).toHaveBeenCalledWith(true, "Unknown");
-		});
-	});
+      expect(onMicChanged).toHaveBeenCalledWith(true, "Unknown");
+    });
+  });
 });

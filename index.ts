@@ -95,9 +95,9 @@ Configuration:
     process.exit(0);
   });
 
-	await awtrixClient.ensureCleanState();
-	await pipeWireMonitor.start();
+  await awtrixClient.ensureCleanState();
+  await pipeWireMonitor.start();
 })().catch((error) => {
-	console.error("Fatal error:", error);
-	process.exit(1);
+  console.error("Fatal error:", error);
+  process.exit(1);
 });
