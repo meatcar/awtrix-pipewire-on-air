@@ -6,6 +6,18 @@
     url = "https://registry.npmjs.org/@types/bun/-/bun-1.3.1.tgz";
     hash = "sha512-4jNMk2/K9YJtfqwoAa28c8wK+T7nvJFOjxI4h/7sORWcypRNxBpr+TPNaCfVWq70tLCJsqoFwcf0oI0JU/fvMQ==";
   };
+  "@types/debug" = {
+    out_path = "@types/debug";
+    name = "@types/debug@4.1.12";
+    url = "https://registry.npmjs.org/@types/debug/-/debug-4.1.12.tgz";
+    hash = "sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==";
+  };
+  "@types/ms" = {
+    out_path = "@types/ms";
+    name = "@types/ms@2.1.0";
+    url = "https://registry.npmjs.org/@types/ms/-/ms-2.1.0.tgz";
+    hash = "sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==";
+  };
   "@types/node" = {
     out_path = "@types/node";
     name = "@types/node@24.9.1";
@@ -29,6 +41,18 @@
     name = "csstype@3.1.3";
     url = "https://registry.npmjs.org/csstype/-/csstype-3.1.3.tgz";
     hash = "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==";
+  };
+  "debug" = {
+    out_path = "debug";
+    name = "debug@4.4.3";
+    url = "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz";
+    hash = "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==";
+  };
+  "ms" = {
+    out_path = "ms";
+    name = "ms@2.1.3";
+    url = "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz";
+    hash = "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==";
   };
   "typescript" = {
     out_path = "typescript";

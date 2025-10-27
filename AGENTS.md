@@ -2,8 +2,10 @@
 
 ## Commands
 - **Run**: `bun run index.ts` (requires `AWTRIX_HOST` env var or `--awtrix-host` flag)
+- **Run with debug logs**: `DEBUG=awtrix:* bun run index.ts`
 - **Format**: `bun run fmt` (uses Biome)
 - **Type check**: `bunx tsc --noEmit`
+- **Test**: `bun test`
 
 ## Architecture
 - **Runtime**: Bun with TypeScript
