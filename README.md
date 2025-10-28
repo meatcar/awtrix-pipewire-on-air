@@ -22,6 +22,8 @@ This tool watches PipeWire for active microphone streams and automatically shows
 
 ```bash
 bun install
+# OR
+nix build .
 ```
 
 ## Usage
@@ -30,22 +32,26 @@ Set your Ulanzi TC001 host (running Awtrix firmware):
 
 ```bash
 export AWTRIX_HOST="192.168.1.100"
-bunx awtrix-pipewire-on-air
+bun index.ts
+# OR 
+./results/bin/awtrix-pipewire-on-air
 ```
 
 Or pass it as an argument:
 
 ```bash
-bunx awtrix-pipewire-on-air --awtrix-host 192.168.1.100
+bun index.ts --awtrix-host 192.168.1.100
 ```
 
-If running from source:
+### Configuration
 
-```bash
-bun run index.ts --awtrix-host 192.168.1.100
-```
+You can optionally create a configuration file at `$XDG_CONFIG_HOME/awtrix-pipewire-on-air/config.toml`to set default values. Copy `/config.example.toml` as a starting point.
 
-The monitor will run until you press Ctrl+C.
+Settings precedence (highest to lowest):
+1. Command-line flags
+2. Environment variables
+3. Configuration file
+4. Default values
 
 ## Development
 
@@ -63,11 +69,6 @@ bun run fmt
 **Run tests:**
 ```bash
 bun test
-```
-
-**Type check:**
-```bash
-bunx tsc --noEmit
 ```
 
 ## Testing
