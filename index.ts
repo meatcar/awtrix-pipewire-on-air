@@ -13,16 +13,22 @@ Options:
     --awtrix-host <host>     Awtrix display host (IP:port)
     -i, --ignore-apps <apps> Comma-delimited list of application names (exact or partial matches) to ignore, overriding env var, config file, and defaults
     --log-ignored            Log when applications are ignored due to being in the ignore list
+    --text <text>            Text to display when microphone is active
+    --icon <icon>            Icon to display when microphone is active
+    --color <color>          Text color when microphone is active (hex format)
 
 Environment Variables:
     AWTRIX_HOST              Awtrix display host (required)
     AWTRIX_IGNORE_APPS       Comma-delimited list of application names to ignore
     AWTRIX_LOG_IGNORED       Log ignored applications (true/false)
+    AWTRIX_TEXT              Text to display when microphone is active
+    AWTRIX_ICON              Icon to display when microphone is active
+    AWTRIX_COLOR             Text color when microphone is active (hex format)
 
 Configuration:
-  Config file: ~/.config/awtrix-pipewire-on-air/config.toml (or $XDG_CONFIG_HOME)
+   Config file: ~/.config/awtrix-pipewire-on-air/config.toml (or $XDG_CONFIG_HOME)
     See config.example.toml for available settings
-  `;
+   `;
 
 (async () => {
   const config = await loadConfig();
@@ -43,6 +49,15 @@ Configuration:
       },
       "log-ignored": {
         type: "boolean",
+      },
+      text: {
+        type: "string",
+      },
+      icon: {
+        type: "string",
+      },
+      color: {
+        type: "string",
       },
     },
     strict: true,
@@ -67,6 +82,10 @@ Configuration:
       ? process.env.AWTRIX_LOG_IGNORED === "true"
       : config.logIgnoredApps) ??
     false;
+  const onAirText = values.text ?? process.env.AWTRIX_TEXT ?? config.onAirText;
+  const onAirIcon = values.icon ?? process.env.AWTRIX_ICON ?? config.onAirIcon;
+  const onAirColor =
+    values.color ?? process.env.AWTRIX_COLOR ?? config.onAirColor;
 
   if (!awtrixHost) {
     console.error(
@@ -75,7 +94,12 @@ Configuration:
     process.exit(1);
   }
 
-  const awtrixClient = new AwtrixClient(awtrixHost);
+  const awtrixClient = new AwtrixClient(
+    awtrixHost,
+    onAirText,
+    onAirColor,
+    onAirIcon,
+  );
   const pipeWireMonitor = new PipeWireMonitor(
     async (isActive, appName) => {
       const status = isActive ? "activated" : "deactivated";
@@ -102,6 +126,9 @@ Configuration:
   console.log(`  Awtrix host: ${awtrixHost}`);
   console.log(`  Ignored apps: ${ignoreApps.join(", ") || "none"}`);
   console.log(`  Log ignored apps: ${logIgnoredApps ? "yes" : "no"}`);
+  console.log(`  On air text: ${onAirText}`);
+  console.log(`  On air icon: ${onAirIcon}`);
+  console.log(`  On air color: ${onAirColor}`);
   console.log("");
 
   console.log(

@@ -45,7 +45,15 @@ bun index.ts --awtrix-host 192.168.1.100
 
 ### Configuration
 
-You can optionally create a configuration file at `$XDG_CONFIG_HOME/awtrix-pipewire-on-air/config.toml`to set default values. Copy `/config.example.toml` as a starting point.
+You can optionally create a configuration file at `$XDG_CONFIG_HOME/awtrix-pipewire-on-air/config.toml` to set default values. Copy `config.example.toml` as a starting point.
+
+The configuration file allows setting:
+- `awtrixHost`: Your Ulanzi TC001 IP and port
+- `ignoreApps`: List of application names to ignore (won't trigger "ON AIR" indicator)
+- `logIgnoredApps`: Whether to log when ignored applications use the mic
+- `onAirText`: Text to display when microphone is active
+- `onAirIcon`: Icon to display when microphone is active
+- `onAirColor`: Text color when microphone is active (hex format)
 
 Settings precedence (highest to lowest):
 1. Command-line flags

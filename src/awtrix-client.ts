@@ -1,9 +1,6 @@
 import type { AwtrixMessage } from "./types";
 
 const APP_NAME = "onair";
-const ON_AIR_TEXT = "ON AIR";
-const ON_AIR_COLOR = "#FF0000";
-const ON_AIR_ICON = "liveonair";
 
 /**
  * Client for controlling an Awtrix LED matrix display.
@@ -16,14 +13,28 @@ const ON_AIR_ICON = "liveonair";
 export class AwtrixClient {
   private baseUrl: string;
   private appName = APP_NAME;
+  private onAirText: string;
+  private onAirColor: string;
+  private onAirIcon: string;
 
   /**
    * Creates a new Awtrix client.
    *
    * @param host The Awtrix display host (IP:port or hostname:port)
+   * @param onAirText The text to display when microphone is active
+   * @param onAirColor The color of the text when microphone is active
+   * @param onAirIcon The icon to display when microphone is active
    */
-  constructor(host: string) {
+  constructor(
+    host: string,
+    onAirText = "ON AIR",
+    onAirColor = "#FF0000",
+    onAirIcon = "liveonair",
+  ) {
     this.baseUrl = `http://${host}`;
+    this.onAirText = onAirText;
+    this.onAirColor = onAirColor;
+    this.onAirIcon = onAirIcon;
   }
 
   /**
@@ -56,9 +67,9 @@ export class AwtrixClient {
    */
   async showOnAir(): Promise<void> {
     await this.updateCustomApp({
-      text: ON_AIR_TEXT,
-      color: ON_AIR_COLOR,
-      icon: ON_AIR_ICON,
+      text: this.onAirText,
+      color: this.onAirColor,
+      icon: this.onAirIcon,
     });
   }
 

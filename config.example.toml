@@ -14,3 +14,18 @@ ignoreApps = ["cava", "pavucontrol", "additionalApp"]
 # Can also be set via AWTRIX_LOG_IGNORED environment variable.
 # CLI flag takes precedence over this config setting.
 logIgnoredApps = false
+
+# Text to display when microphone is active.
+# Can also be set via AWTRIX_TEXT environment variable.
+# CLI flag takes precedence over this config setting.
+onAirText = "ON AIR"
+
+# Icon to display when microphone is active.
+# Can also be set via AWTRIX_ICON environment variable.
+# CLI flag takes precedence over this config setting.
+onAirIcon = "liveonair"
+
+# Text color when microphone is active (hex format).
+# Can also be set via AWTRIX_COLOR environment variable.
+# CLI flag takes precedence over this config setting.
+onAirColor = "#FF0000"

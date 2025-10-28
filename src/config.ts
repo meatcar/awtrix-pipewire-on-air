@@ -5,6 +5,9 @@ export interface Config {
   awtrixHost?: string;
   ignoreApps?: string[];
   logIgnoredApps?: boolean;
+  onAirText?: string;
+  onAirIcon?: string;
+  onAirColor?: string;
 }
 
 const CONFIG_DIR = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
@@ -13,6 +16,9 @@ const CONFIG_PATH = join(CONFIG_DIR, "awtrix-pipewire-on-air", "config.toml");
 const DEFAULT_CONFIG: Config = {
   ignoreApps: ["cava", "pavucontrol"],
   logIgnoredApps: false,
+  onAirText: "ON AIR",
+  onAirIcon: "liveonair",
+  onAirColor: "#FF0000",
 };
 
 export async function loadConfig(): Promise<Config> {
