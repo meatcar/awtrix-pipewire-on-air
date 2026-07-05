@@ -1,0 +1,54 @@
+version: "3"
+silent: true
+
+tasks:
+  before_nix:
+    desc: Establish access needed for private Nix inputs
+    cmds: []
+
+  setup_auth:
+    desc: Establish shared access needed for setup
+    cmds: []
+
+  resume_auth:
+    desc: Refresh the current session's credentials
+    cmds: []
+
+  work:
+    desc: Prepare the project after authentication
+    cmds:
+      - task: deps
+      - task: prep
+      - task: check
+      - task: ready
+
+  deps:
+    desc: Install locked dependencies during setup
+    cmds:
+      - |
+        if [ "$SANDBOX_LIFECYCLE" = setup ]; then
+          bun install --frozen-lockfile
+        else
+          test -d node_modules || { echo 'Dependencies unavailable; run .agents/setup' >&2; exit 1; }
+        fi
+
+  prep:
+    desc: Prepare project data and generated files
+    cmds: []
+
+  check:
+    desc: Check the toolchain and project without requiring hardware
+    cmds:
+      - command -v pw-dump
+      - command -v jq
+      - bun run check
+      - bun test
+
+  ready:
+    desc: Report development environment readiness
+    cmds:
+      - echo 'Development environment ready. Live monitoring requires a host PipeWire session and AWTRIX_HOST.'
+
+  setup_cleanup:
+    desc: Remove temporary setup credentials
+    cmds: []

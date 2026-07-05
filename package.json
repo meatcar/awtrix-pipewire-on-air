@@ -9,7 +9,10 @@
   },
   "scripts": {
     "postinstall": "bun2nix -o bun.nix",
-    "fmt": "biome format --write",
+    "fmt": "treefmt",
+    "typecheck": "bun run --bun tsc --noEmit",
+    "check:lockfile": "bun2nix -o /dev/stdout | cmp - bun.nix",
+    "check": "bun run typecheck && bun run check:lockfile && treefmt --ci",
     "test": "bun test",
     "fixtures": "bun run test/fixtures/capture-fixtures.ts && bun fmt"
   },
