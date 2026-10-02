@@ -96,16 +96,19 @@ export class PipeWireMonitor {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        try {
-          const data = JSON.parse(trimmed);
-          this.handleMessage(data);
-        } catch (error) {
-          console.error("Failed to parse JSON line:", error);
-        }
+        this.handleLine(line);
       }
+    }
+    this.handleLine(buffer + decoder.decode());
+  }
+
+  private handleLine(line: string): void {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    try {
+      this.handleMessage(JSON.parse(trimmed));
+    } catch (error) {
+      console.error("Failed to parse JSON line:", error);
     }
   }
 

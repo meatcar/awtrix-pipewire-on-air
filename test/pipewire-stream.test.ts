@@ -35,3 +35,11 @@ for (const byte of bytes) {
 `]);
   expect(changes).toEqual([[true, "Émission 🎙"], [false, undefined]]);
 });
+
+test("processes the final JSON message without a newline at EOF", async () => {
+  const changes: Array<[boolean, string | undefined]> = [];
+  const monitor = new PipeWireMonitor((active, name) => { changes.push([active, name]); }, [], false);
+  const input = `${JSON.stringify([mic(17, "Recorder")])}\n${JSON.stringify({type: "removed", id: 17})}`;
+  await monitor.start([process.execPath, "-e", `process.stdout.write(${JSON.stringify(input)})`]);
+  expect(changes).toEqual([[true, "Recorder"], [false, undefined]]);
+});
