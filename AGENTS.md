@@ -1,6 +1,7 @@
 # Agent Guidelines for awtrix-pipewire-on-air
 
 ## Commands
+
 - **Run**: `bun run index.ts` (requires `AWTRIX_HOST` env var or `--awtrix-host` flag)
 - **Run with debug logs**: `DEBUG=awtrix:* bun run index.ts`
 - **Format**: `bun run fmt` (uses Biome)
@@ -8,6 +9,7 @@
 - **Test**: `bun test`
 
 ## Architecture
+
 - **Runtime**: Bun with TypeScript
 - **Entry point**: `index.ts` - CLI that monitors microphone and controls Awtrix display
 - **Core modules**:
@@ -16,6 +18,7 @@
   - `src/types.ts` - Shared TypeScript interfaces
 
 ## Code Style
+
 - **Formatting**: Biome with tabs for indentation, double quotes
 - **TypeScript**: Strict mode enabled, use explicit types for interfaces
 - **Imports**: Use `.ts` extensions, organize imports (Biome handles this)

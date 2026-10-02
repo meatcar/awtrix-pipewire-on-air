@@ -46,6 +46,9 @@
           packages.default = pkgs.callPackage ./default.nix {
             inherit bun2nix bunDeps;
           };
+          packages.tooling = pkgs.callPackage ./nix/tooling.nix {
+            inherit bun2nix bunDeps;
+          };
           checks.application = config.packages.default.overrideAttrs (old: {
             nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.jq ];
             doCheck = true;

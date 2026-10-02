@@ -32,16 +32,12 @@
           nixfmt.enable = true;
           deadnix.enable = true;
           statix.enable = true;
-          biome = {
+          oxfmt = {
             enable = true;
-            formatCommand = "format";
+            package = config.packages.tooling;
           };
         };
-        settings.formatter.biome.options = lib.mkForce [
-          "format"
-          "--write"
-          "--no-errors-on-unmatched"
-        ];
+        settings.formatter.oxfmt.command = lib.mkForce (lib.getExe' config.packages.tooling "oxfmt");
       };
       formatter = config.treefmt.build.wrapper;
     };

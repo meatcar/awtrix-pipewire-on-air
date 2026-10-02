@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 import { parseArgs } from "util";
+
 import { AwtrixClient } from "./src/awtrix-client";
-import { PipeWireMonitor } from "./src/pipewire-monitor";
 import { loadConfig } from "./src/config";
+import { PipeWireMonitor } from "./src/pipewire-monitor";
 
 const usage = `Usage: bun index.ts [options]
 
@@ -72,9 +73,13 @@ export async function main(): Promise<void> {
   const awtrixHost =
     values["awtrix-host"] ?? process.env.AWTRIX_HOST ?? config.awtrixHost;
   const ignoreList = values["ignore-apps"] ?? process.env.AWTRIX_IGNORE_APPS;
-  const ignoreApps = ignoreList !== undefined
-    ? ignoreList.split(",").map((s) => s.trim()).filter(Boolean)
-    : config.ignoreApps ?? ["cava", "pavucontrol"];
+  const ignoreApps =
+    ignoreList !== undefined
+      ? ignoreList
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : (config.ignoreApps ?? ["cava", "pavucontrol"]);
   const logIgnoredApps =
     values["log-ignored"] ??
     (process.env.AWTRIX_LOG_IGNORED
@@ -116,7 +121,10 @@ export async function main(): Promise<void> {
             console.log("\x1b[31m✓ ON AIR indicator deactivated\x1b[0m");
           }
         } catch (error) {
-          console.error("\x1b[31mFailed to update Awtrix display:\x1b[0m", error);
+          console.error(
+            "\x1b[31mFailed to update Awtrix display:\x1b[0m",
+            error,
+          );
         }
       });
     },
@@ -160,7 +168,10 @@ export async function main(): Promise<void> {
         try {
           await awtrixClient.hideOnAir();
         } catch (error) {
-          console.error("\x1b[31mFailed to clear Awtrix display:\x1b[0m", error);
+          console.error(
+            "\x1b[31mFailed to clear Awtrix display:\x1b[0m",
+            error,
+          );
         }
       }
     } finally {

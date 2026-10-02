@@ -1,5 +1,6 @@
-import { $ } from "bun";
 import { readFileSync, writeFileSync } from "fs";
+
+import { $ } from "bun";
 import type { Subprocess } from "bun";
 
 const FIXTURE_DIR = import.meta.dir;

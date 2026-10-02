@@ -2,36 +2,38 @@
   "name": "awtrix-pipewire-on-air",
   "version": "1.0.0",
   "description": "Monitor microphone and display an ON AIR indicator on Ulanzi TC001 running Awtrix",
-  "module": "index.ts",
-  "type": "module",
-  "bin": {
-    "awtrix-pipewire-on-air": "./index.ts"
-  },
-  "scripts": {
-    "fmt": "treefmt",
-    "typecheck": "bun run --bun tsc --noEmit",
-    "check:lockfile": "bun install --frozen-lockfile --ignore-scripts",
-    "check": "bun run typecheck && bun run check:lockfile && treefmt --ci",
-    "test": "bun test test/*.test.ts",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov test/*.test.ts",
-    "fixtures": "bun run test/fixtures/capture-fixtures.ts && bun fmt"
-  },
   "keywords": [
     "awtrix",
-    "ulanzi",
-    "tc001",
-    "pipewire",
+    "indicator",
     "microphone",
     "on-air",
-    "indicator"
+    "pipewire",
+    "tc001",
+    "ulanzi"
   ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/meatcar/awtrix-pipewire-on-air"
   },
-  "license": "MIT",
-  "engines": {
-    "bun": ">=1.4.2"
+  "bin": {
+    "awtrix-pipewire-on-air": "./index.ts"
+  },
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "fmt": "treefmt",
+    "check:format": "treefmt --ci",
+    "lint": "bun run --bun oxlint --deny-warnings .",
+    "typecheck": "bun run --bun tsc --noEmit",
+    "check:lockfile": "bun install --frozen-lockfile --ignore-scripts",
+    "check": "bun run check:lockfile && bun run typecheck && bun run lint && bun run check:format",
+    "test": "bun test test/*.test.ts",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov test/*.test.ts",
+    "fixtures": "bun run test/fixtures/capture-fixtures.ts && bun fmt"
+  },
+  "dependencies": {
+    "debug": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "1.4.2",
@@ -40,7 +42,7 @@
     "oxlint": "1.86.0",
     "typescript": "^7.0.2"
   },
-  "dependencies": {
-    "debug": "^4.4.3"
+  "engines": {
+    "bun": ">=1.4.2"
   }
 }

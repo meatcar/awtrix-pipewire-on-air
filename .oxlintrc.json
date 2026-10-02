@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "bun": true
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    "coverage/**",
+    "dist/**",
+    "out/**",
+    ".direnv/**",
+    ".amp/**",
+    ".agents/sandbox/**",
+    "*.lock",
+    "*.lockb",
+    "flake.lock",
+    "bun.nix"
+  ]
+}

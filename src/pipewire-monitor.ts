@@ -77,16 +77,22 @@ export class PipeWireMonitor {
    * This method runs until the process is killed via `stop()`.
    */
   async start(command?: string[]): Promise<void> {
-    if (this.processes.length) throw new Error("PipeWire monitor is already running");
+    if (this.processes.length)
+      throw new Error("PipeWire monitor is already running");
     this.stopped = false;
     try {
       const source = Bun.spawn(command ?? ["pw-dump", "--monitor"], {
-        stdout: "pipe", stderr: "inherit",
+        stdout: "pipe",
+        stderr: "inherit",
       });
       this.processes.push(source);
-      const output = command ? source : Bun.spawn(["jq", "--unbuffered", "-c", "."], {
-        stdin: source.stdout, stdout: "pipe", stderr: "inherit",
-      });
+      const output = command
+        ? source
+        : Bun.spawn(["jq", "--unbuffered", "-c", "."], {
+            stdin: source.stdout,
+            stdout: "pipe",
+            stderr: "inherit",
+          });
       if (output !== source) this.processes.push(output);
 
       const decoder = new TextDecoder();
@@ -105,7 +111,9 @@ export class PipeWireMonitor {
       for (const proc of [...this.processes].reverse()) {
         const code = await proc.exited;
         if (!this.stopped && code !== 0) {
-          throw new Error(`PipeWire monitor subprocess exited with code ${code}`);
+          throw new Error(
+            `PipeWire monitor subprocess exited with code ${code}`,
+          );
         }
       }
     } finally {

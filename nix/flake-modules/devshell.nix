@@ -5,6 +5,7 @@
       pkgs,
       config,
       inputs',
+      lib,
       ...
     }:
     {
@@ -28,8 +29,18 @@
       checks.devshell = config.devShells.default.overrideAttrs (old: {
         name = "awtrix-devshell-check";
         nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.python3Packages.pytest ];
+        src = lib.fileset.toSource {
+          root = ../..;
+          fileset = lib.fileset.unions [
+            ../../flake.nix
+            ../../package.json
+            ../../.oxfmtrc.json
+            ../../.oxlintrc.json
+            ../../test/test_devshell.py
+          ];
+        };
         buildPhase = ''
-          cp -r ${../..} project
+          cp -r "$src" project
           chmod -R u+w project
           cd project
           export HOME="$TMPDIR/home"
