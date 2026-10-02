@@ -39,15 +39,5 @@
           touch "$out"
         '';
       });
-      checks.bun-lock =
-        pkgs.runCommand "bun-lock-check"
-          {
-            nativeBuildInputs = [ inputs'.bun2nix.packages.default ];
-          }
-          ''
-            bun2nix -l ${../../bun.lock} -o generated.nix
-            cmp ${../../bun.nix} generated.nix
-            touch "$out"
-          '';
     };
 }

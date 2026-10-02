@@ -1,11 +1,29 @@
-{ mkBunDerivation, ... }:
-mkBunDerivation {
-  pname = "awtrix-pipewire-on-air";
-  version = "1.0.0";
+{
+  lib,
+  bun2nix,
+  bunDeps,
+  ...
+}:
+bun2nix.mkDerivation {
+  packageJson = ./package.json;
 
-  src = ./.;
+  src = lib.fileset.toSource {
+    root = ./.;
+    fileset = lib.fileset.unions [
+      ./index.ts
+      ./src
+      ./package.json
+      ./bun.lock
+      ./tsconfig.json
+      (lib.fileset.fileFilter (file: file.hasExt "ts" || file.hasExt "json") ./test)
+    ];
+  };
 
-  bunNix = ./bun.nix;
-
-  index = "index.ts";
+  inherit bunDeps;
+  bunCompileToBytecode = false;
+  bunInstallFlags = [
+    "--frozen-lockfile"
+    "--linker=isolated"
+  ];
+  dontRunLifecycleScripts = true;
 }
