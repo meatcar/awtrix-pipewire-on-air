@@ -30,7 +30,8 @@ interface PipeWireEvent {
  * Properly handles PipeWire events (added/changed/removed) to track state changes.
  */
 export class PipeWireMonitor {
-  private process: Subprocess | null = null;
+  private processes: Subprocess[] = [];
+  private stopped = false;
   private onMicChanged: (isActive: boolean, appName?: string) => void;
   private activeMicStreams = new Map<number, string>();
   private lastEmittedActive = false;
@@ -75,31 +76,41 @@ export class PipeWireMonitor {
    * Spawns `pw-dump --monitor | jq` and processes the stream until stopped.
    * This method runs until the process is killed via `stop()`.
    */
-  async start(command = ["sh", "-c", "pw-dump --monitor | jq --unbuffered -c '.'"]): Promise<void> {
-    const proc = Bun.spawn(
-      command,
-      {
-        stdout: "pipe",
-        stderr: "inherit",
-      },
-    );
+  async start(command?: string[]): Promise<void> {
+    if (this.processes.length) throw new Error("PipeWire monitor is already running");
+    this.stopped = false;
+    try {
+      const source = Bun.spawn(command ?? ["pw-dump", "--monitor"], {
+        stdout: "pipe", stderr: "inherit",
+      });
+      this.processes.push(source);
+      const output = command ? source : Bun.spawn(["jq", "--unbuffered", "-c", "."], {
+        stdin: source.stdout, stdout: "pipe", stderr: "inherit",
+      });
+      if (output !== source) this.processes.push(output);
 
-    this.process = proc;
-
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    for await (const chunk of proc.stdout) {
-      buffer += decoder.decode(chunk, { stream: true });
-
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        this.handleLine(line);
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for await (const chunk of output.stdout) {
+        if (this.stopped) break;
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (this.stopped) break;
+          this.handleLine(line);
+        }
       }
+      if (!this.stopped) this.handleLine(buffer + decoder.decode());
+      for (const proc of [...this.processes].reverse()) {
+        const code = await proc.exited;
+        if (!this.stopped && code !== 0) {
+          throw new Error(`PipeWire monitor subprocess exited with code ${code}`);
+        }
+      }
+    } finally {
+      await this.stop();
     }
-    this.handleLine(buffer + decoder.decode());
   }
 
   private handleLine(line: string): void {
@@ -332,11 +343,13 @@ export class PipeWireMonitor {
    *
    * Kills the subprocess and resets internal state.
    */
-  stop(): void {
-    if (this.process) {
-      this.process.kill();
-      this.process = null;
+  async stop(): Promise<void> {
+    this.stopped = true;
+    for (const proc of this.processes) {
+      if (proc.exitCode === null) proc.kill();
     }
+    await Promise.all(this.processes.map((proc) => proc.exited));
+    this.processes = [];
     this.activeMicStreams.clear();
     this.lastEmittedActive = false;
   }
