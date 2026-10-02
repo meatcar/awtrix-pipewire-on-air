@@ -55,7 +55,7 @@
             checkPhase = ''
               runHook preCheck
               test "$(bun --version)" = "${pkgs.bun.version}"
-              bun run test
+              AWTRIX_TEST_EXECUTABLE="$PWD/$pname" bun run test
               bun run typecheck
               runHook postCheck
             '';

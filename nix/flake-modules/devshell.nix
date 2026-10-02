@@ -34,6 +34,7 @@
           fileset = lib.fileset.unions [
             ../../flake.nix
             ../../package.json
+            ../../bunfig.toml
             ../../.oxfmtrc.json
             ../../.oxlintrc.json
             ../../test/test_devshell.py

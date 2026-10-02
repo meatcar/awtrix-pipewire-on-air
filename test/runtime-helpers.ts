@@ -25,7 +25,9 @@ export function cli(
   env: Record<string, string> & { HOME: string },
   args: string[] = [],
 ) {
-  const command = [process.execPath, "--no-env-file", join(root, "index.ts")];
+  const command = process.env.AWTRIX_TEST_EXECUTABLE
+    ? [process.env.AWTRIX_TEST_EXECUTABLE]
+    : [process.execPath, "--no-env-file", join(root, "index.ts")];
   return Bun.spawn([...command, ...args], {
     cwd: join(env.HOME, "work"),
     env,

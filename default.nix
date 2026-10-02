@@ -14,6 +14,7 @@ bun2nix.mkDerivation {
       ./src
       ./package.json
       ./bun.lock
+      ./bunfig.toml
       ./tsconfig.json
       (lib.fileset.fileFilter (file: file.hasExt "ts" || file.hasExt "json") ./test)
     ];
