@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 
-import { cli, result, sandbox } from "./runtime-helpers.ts";
+import { cli, mic, result, sandbox } from "./runtime-helpers.ts";
 
 test("CLI help, missing host and unknown arguments exit without hardware", async () => {
   const box = await sandbox();
@@ -172,6 +172,45 @@ test("importing the entry point does not start the CLI", async () => {
       stderr: "",
     });
   } finally {
+    await box.dispose();
+  }
+});
+
+test("empty CLI and environment ignore lists override lower-precedence lists", async () => {
+  const box = await sandbox(
+    `console.log(${JSON.stringify(JSON.stringify([mic(17, "cava")]))});`,
+  );
+  const messages: unknown[] = [];
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    async fetch(request) {
+      if (request.method === "POST") messages.push(await request.json());
+      return Response.json([]);
+    },
+  });
+  const env = {
+    ...box.env,
+    AWTRIX_HOST: `127.0.0.1:${server.port}`,
+    AWTRIX_IGNORE_APPS: "cava",
+  };
+  try {
+    const flags = await result(cli(env, ["--ignore-apps", ""]));
+    expect(flags.code).toBe(0);
+    expect(flags.stdout).toContain("Ignored apps: none");
+    expect(messages).toHaveLength(1);
+    messages.length = 0;
+    const environment = await result(cli({ ...env, AWTRIX_IGNORE_APPS: "" }));
+    expect(environment.code).toBe(0);
+    expect(environment.stdout).toContain("Ignored apps: none");
+    expect(messages).toHaveLength(1);
+    messages.length = 0;
+    const blanks = await result(cli(env, ["-i", " , , "]));
+    expect(blanks.code).toBe(0);
+    expect(blanks.stdout).toContain("Ignored apps: none");
+    expect(messages).toHaveLength(1);
+  } finally {
+    server.stop(true);
     await box.dispose();
   }
 });

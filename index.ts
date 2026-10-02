@@ -71,11 +71,10 @@ export async function main(): Promise<void> {
 
   const awtrixHost =
     values["awtrix-host"] ?? process.env.AWTRIX_HOST ?? config.awtrixHost;
-  const ignoreApps = values["ignore-apps"]
-    ? values["ignore-apps"].split(",").map((s) => s.trim())
-    : process.env.AWTRIX_IGNORE_APPS
-      ? process.env.AWTRIX_IGNORE_APPS.split(",").map((s) => s.trim())
-      : config.ignoreApps || ["cava", "pavucontrol"];
+  const ignoreList = values["ignore-apps"] ?? process.env.AWTRIX_IGNORE_APPS;
+  const ignoreApps = ignoreList !== undefined
+    ? ignoreList.split(",").map((s) => s.trim()).filter(Boolean)
+    : config.ignoreApps ?? ["cava", "pavucontrol"];
   const logIgnoredApps =
     values["log-ignored"] ??
     (process.env.AWTRIX_LOG_IGNORED
