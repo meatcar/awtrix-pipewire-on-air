@@ -99,23 +99,26 @@ export async function main(): Promise<void> {
     onAirColor,
     onAirIcon,
   );
+  let displayUpdates = Promise.resolve();
   const pipeWireMonitor = new PipeWireMonitor(
-    async (isActive, appName) => {
+    (isActive, appName) => {
       const status = isActive ? "activated" : "deactivated";
       const app = appName ? ` (${appName})` : "";
       console.log(`\x1b[36mMicrophone ${status}${app}\x1b[0m`);
 
-      try {
-        if (isActive) {
-          await awtrixClient.showOnAir();
-          console.log("\x1b[32m✓ ON AIR indicator activated\x1b[0m");
-        } else {
-          await awtrixClient.hideOnAir();
-          console.log("\x1b[31m✓ ON AIR indicator deactivated\x1b[0m");
+      displayUpdates = displayUpdates.then(async () => {
+        try {
+          if (isActive) {
+            await awtrixClient.showOnAir();
+            console.log("\x1b[32m✓ ON AIR indicator activated\x1b[0m");
+          } else {
+            await awtrixClient.hideOnAir();
+            console.log("\x1b[31m✓ ON AIR indicator deactivated\x1b[0m");
+          }
+        } catch (error) {
+          console.error("\x1b[31mFailed to update Awtrix display:\x1b[0m", error);
         }
-      } catch (error) {
-        console.error("\x1b[31mFailed to update Awtrix display:\x1b[0m", error);
-      }
+      });
     },
     ignoreApps,
     logIgnoredApps,
@@ -142,8 +145,12 @@ export async function main(): Promise<void> {
     process.exit(0);
   });
 
-  await awtrixClient.ensureCleanState();
-  await pipeWireMonitor.start();
+  try {
+    await awtrixClient.ensureCleanState();
+    await pipeWireMonitor.start();
+  } finally {
+    await displayUpdates;
+  }
 }
 
 if (import.meta.main) {

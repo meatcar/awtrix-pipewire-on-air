@@ -7,6 +7,9 @@ test("replays captured dumps as deltas through pw-dump and jq", async () => {
 for (const name of ["idle", "mic-active-single", "idle", "mic-active-multiple"]) {
   console.log(await Bun.file(${JSON.stringify(root)} + "/test/fixtures/" + name + ".json").text());
 }
+console.log(JSON.stringify({type: "removed", id: 132}));
+console.log(await Bun.file(${JSON.stringify(root)} + "/test/fixtures/idle.json").text());
+console.log(JSON.stringify({type: "removed", id: 138}));
 `);
   const messages: unknown[] = [];
   const server = Bun.serve({ hostname: "127.0.0.1", port: 0, async fetch(request) {
@@ -17,7 +20,7 @@ for (const name of ["idle", "mic-active-single", "idle", "mic-active-multiple"])
     const output = await result(cli({ ...box.env, AWTRIX_HOST: `127.0.0.1:${server.port}` }));
     expect(output.code).toBe(0);
     expect(output.stdout).toContain("app=PipeWire ALSA [.aplay-wrapped]");
-    expect(messages).toEqual([{text: "ON AIR", color: "#FF0000", icon: "liveonair"}]);
+    expect(messages).toEqual([{text: "ON AIR", color: "#FF0000", icon: "liveonair"}, {}]);
   } finally { server.stop(true); await box.dispose(); }
 });
 
@@ -95,4 +98,20 @@ test("CLI reports pw-dump failure even when jq exits successfully", async () => 
     expect(output.code).toBe(1);
     expect(output.stderr).toContain("code 23");
   } finally { server.stop(true); await box.dispose(); }
+});
+
+test("tracks multiple streams, exclusions, class changes and fallback names at the stream boundary", async () => {
+  const changes: Array<[boolean, string | undefined]> = [];
+  const monitor = new PipeWireMonitor((active, name) => { changes.push([active, name]); }, ["cava"], false);
+  const input = [
+    [mic(17, "Recorder"), mic(29, "Call")],
+    {type: "added", object: mic(51, "CAVA visualizer")},
+    [{id: 999}],
+    {type: "removed", id: 17},
+    {type: "changed", object: {id: 29, info: {props: {"media.class": "Stream/Output/Audio"}}}},
+    {id: 41, info: {props: {"media.class": "Stream/Input/Audio", "node.name": "Fallback"}}},
+    [{id: 41}],
+  ].map((message) => JSON.stringify(message)).join("\n");
+  await monitor.start([process.execPath, "-e", `process.stdout.write(${JSON.stringify(input)})`]);
+  expect(changes).toEqual([[true, "Recorder"], [false, undefined], [true, "Fallback"], [false, undefined]]);
 });
