@@ -1,0 +1,76 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "enabledManagers": ["bun", "npm", "nix", "github-actions", "custom.regex"],
+  "platformAutomerge": false,
+  "ignoreTests": false,
+  "dependencyDashboard": true,
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+  "osvVulnerabilityAlerts": true,
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.agents/sandbox/run\\.sh$/"],
+      "matchStrings": ["version=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "go-task/task",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["bun", "npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["!@types/bun", "!bun"],
+      "groupName": "Bun dependencies"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "matchManagers": ["nix"],
+      "groupName": "Nix inputs",
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["bun", "@types/bun"],
+      "groupName": "Bun runtime and types",
+      "automerge": false,
+      "prBodyNotes": [
+        "Update Bun engines and @types/bun together with the runtime supplied by the locked nixpkgs input. Review the Nix update before merging."
+      ]
+    },
+    {
+      "matchManagers": ["bun", "npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["go-task/task"],
+      "automerge": false,
+      "prBodyNotes": [
+        "Refresh the shared sandbox scripts from meatcar/nix-templates, including both Linux archive checksums. A version-only edit is not safe to merge."
+      ]
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
