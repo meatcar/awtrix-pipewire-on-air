@@ -30,7 +30,7 @@ Configuration:
     See config.example.toml for available settings
    `;
 
-(async () => {
+export async function main(): Promise<void> {
   const config = await loadConfig();
 
   const { values } = parseArgs({
@@ -145,7 +145,11 @@ Configuration:
 
   await awtrixClient.ensureCleanState();
   await pipeWireMonitor.start();
-})().catch((error) => {
-  console.error("\x1b[31mFatal error:\x1b[0m", error);
-  process.exit(1);
-});
+}
+
+if (import.meta.main) {
+  main().catch((error) => {
+    console.error("\x1b[31mFatal error:\x1b[0m", error);
+    process.exit(1);
+  });
+}

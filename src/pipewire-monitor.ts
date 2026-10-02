@@ -75,9 +75,9 @@ export class PipeWireMonitor {
    * Spawns `pw-dump --monitor | jq` and processes the stream until stopped.
    * This method runs until the process is killed via `stop()`.
    */
-  async start(): Promise<void> {
+  async start(command = ["sh", "-c", "pw-dump --monitor | jq --unbuffered -c '.'"]): Promise<void> {
     const proc = Bun.spawn(
-      ["sh", "-c", "pw-dump --monitor | jq --unbuffered -c '.'"],
+      command,
       {
         stdout: "pipe",
         stderr: "inherit",
