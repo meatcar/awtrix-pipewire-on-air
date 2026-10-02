@@ -139,17 +139,34 @@ export async function main(): Promise<void> {
   console.log(`Awtrix display: ${awtrixHost}`);
   console.log("Starting monitor...");
 
-  process.on("SIGINT", () => {
-    console.log("\[33m\nStopping monitor[0m...");
-    pipeWireMonitor.stop();
-    process.exit(0);
-  });
+  let stopping = false;
+  const stop = () => {
+    if (stopping) return;
+    stopping = true;
+    console.log("\x1b[33m\nStopping monitor\x1b[0m...");
+    void pipeWireMonitor.stop();
+  };
+  process.on("SIGINT", stop);
+  process.on("SIGTERM", stop);
 
   try {
     await awtrixClient.ensureCleanState();
-    await pipeWireMonitor.start();
+    if (!stopping) await pipeWireMonitor.start();
   } finally {
-    await displayUpdates;
+    try {
+      await pipeWireMonitor.stop();
+      await displayUpdates;
+      if (stopping) {
+        try {
+          await awtrixClient.hideOnAir();
+        } catch (error) {
+          console.error("\x1b[31mFailed to clear Awtrix display:\x1b[0m", error);
+        }
+      }
+    } finally {
+      process.off("SIGINT", stop);
+      process.off("SIGTERM", stop);
+    }
   }
 }
 

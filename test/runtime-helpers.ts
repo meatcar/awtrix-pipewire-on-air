@@ -34,10 +34,22 @@ export function cli(
   });
 }
 
-export async function result(proc: ReturnType<typeof cli>) {
+export async function result(
+  proc: ReturnType<typeof cli>,
+  onStdout?: (output: string) => void,
+) {
+  const readStdout = async () => {
+    const decoder = new TextDecoder();
+    let output = "";
+    for await (const chunk of proc.stdout) {
+      output += decoder.decode(chunk, { stream: true });
+      onStdout?.(output);
+    }
+    return output + decoder.decode();
+  };
   const [code, stdout, stderr] = await Promise.all([
     proc.exited,
-    new Response(proc.stdout).text(),
+    readStdout(),
     new Response(proc.stderr).text(),
   ]);
   return { code, stdout, stderr };
