@@ -1,12 +1,14 @@
-# Agent Guidelines for awtrix-pipewire-on-air
+# Agent guidelines for awtrix-pipewire-on-air
 
-## Commands
+## Environment and checks
 
-- **Run**: `bun run index.ts` (requires `AWTRIX_HOST` env var or `--awtrix-host` flag)
-- **Run with debug logs**: `DEBUG=awtrix:* bun run index.ts`
-- **Format**: `bun run fmt` (uses Biome)
-- **Type check**: `bunx tsc --noEmit`
-- **Test**: `bun test`
+- Run development commands inside `nix develop` or through `direnv exec .`.
+- Nix shell and formatter configuration live in `nix/flake-modules/`.
+- Use the scripts in `package.json`; `bun run check` and `bun run test` are the hardware-free development checks. `nix flake check` also verifies the Nix package and devshell.
+- Use `bun run fmt` for formatting. Oxfmt formats TypeScript, JSON, Markdown, and YAML; treefmt also runs the Nix formatters. Oxlint owns linting and `tsc` owns type checking.
+- Keep required tests hardware-free. Fixture capture needs live audio hardware and is an explicit maintenance command, not a test.
+- Nix generates dependency data from `bun.lock` in the store. Keep import-from-derivation enabled; there is no committed `bun.nix` to refresh.
+- Before changing setup/resume, read `.agents/README.md`. Project tasks belong in `.agents/Taskfile.yml`; keep shared bootstrap scripts synchronized with `nix-templates`.
 
 ## Architecture
 
@@ -17,11 +19,10 @@
   - `src/awtrix-client.ts` - HTTP client for Awtrix display API
   - `src/types.ts` - Shared TypeScript interfaces
 
-## Code Style
+## Code style
 
-- **Formatting**: Biome with tabs for indentation, double quotes
 - **TypeScript**: Strict mode enabled, use explicit types for interfaces
-- **Imports**: Use `.ts` extensions, organize imports (Biome handles this)
+- **Imports**: Use `.ts` extensions
 - **Naming**: camelCase for variables/methods, PascalCase for classes/interfaces
 - **Process spawning**: Use `Bun.spawn()` for long-running streaming commands (not `$` helper)
 - **Error handling**: Try/catch with console.error for parsing errors, throw for critical failures

@@ -27,7 +27,7 @@ tasks:
     cmds:
       - |
         if [ "$SANDBOX_LIFECYCLE" = setup ]; then
-          bun install --frozen-lockfile
+          bun run check:lockfile
         else
           test -d node_modules || { echo 'Dependencies unavailable; run .agents/setup' >&2; exit 1; }
         fi
@@ -37,12 +37,19 @@ tasks:
     cmds: []
 
   check:
-    desc: Check the toolchain and project without requiring hardware
+    desc: Check tools on resume and the hardware-free suite on setup
     cmds:
-      - command -v pw-dump
-      - command -v jq
-      - bun run check
-      - bun test
+      - |
+        set -eu
+        for tool in bun oxlint oxfmt pw-dump jq; do
+          command -v "$tool" > /dev/null || exit 1
+        done
+        if [ "$SANDBOX_LIFECYCLE" = setup ]; then
+          bun run typecheck
+          bun run lint
+          bun run check:format
+          bun run test
+        fi
 
   ready:
     desc: Report development environment readiness
